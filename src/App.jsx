@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Globe from 'react-globe.gl';
 import {
   Globe2, Search, Shuffle, Heart, Stamp, Trophy,
-  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette
+  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette, CheckCircle2, Award, CircleHelp
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
 import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard } from './media.js';
@@ -10,10 +10,11 @@ import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, to
 const STORAGE = 'one-minute-from-earth-v1';
 
 function loadState() {
+  const fallback = { favorites: [], history: [], stamps: [], badges: [] };
   try {
-    return JSON.parse(localStorage.getItem(STORAGE)) || { favorites: [], history: [], stamps: [] };
+    return { ...fallback, ...(JSON.parse(localStorage.getItem(STORAGE)) || {}) };
   } catch {
-    return { favorites: [], history: [], stamps: [] };
+    return fallback;
   }
 }
 
@@ -38,8 +39,16 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('one-minute-theme') || 'dark');
   const [foodHighlights, setFoodHighlights] = useState([]);
   const [cultureHighlights, setCultureHighlights] = useState([]);
+  const [journeySeenTabs, setJourneySeenTabs] = useState(() => new Set(['overview']));
+  const [quizAnswer, setQuizAnswer] = useState('');
+  const [stampBurst, setStampBurst] = useState(false);
   const globeRef = useRef();
   const current = destinations[currentIndex];
+
+  useEffect(() => {
+    setJourneySeenTabs(new Set(['overview']));
+    setQuizAnswer('');
+  }, [current.id]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -238,6 +247,55 @@ export default function App() {
     visited >= 3 ? 'Explorer' :
     'First Steps';
 
+  const journeyProgress = Math.round((journeySeenTabs.size / 5) * 100);
+
+  const badgeDefinitions = [
+    { id: 'taste-explorer', label: 'Taste Explorer', icon: '🍽️', unlocked: journeySeenTabs.has('food') },
+    { id: 'culture-hunter', label: 'Culture Hunter', icon: '🎭', unlocked: journeySeenTabs.has('culture') },
+    { id: 'sound-seeker', label: 'Sound Seeker', icon: '🎧', unlocked: journeySeenTabs.has('watch') },
+    { id: 'local-lens', label: 'Local Lens', icon: '🗺️', unlocked: journeySeenTabs.has('special') },
+    { id: 'deep-diver', label: 'Deep Diver', icon: '🏅', unlocked: journeySeenTabs.size === 5 }
+  ];
+
+  const guideReaction = {
+    overview: `Start with the big picture — then pick a trail.`,
+    food: `Good choice. Food tells you a lot about how people live here.`,
+    culture: `This is where the place becomes more than a postcard.`,
+    watch: `Turn the volume up a little — sound changes how a place feels.`,
+    special: `One last stop. This is the detail I’d want you to remember.`
+  }[journeyTab];
+
+  const quizOptions = useMemo(() => {
+    const correct = foodHighlights[0]?.name;
+    if (!correct) return [];
+    const distractors = destinations
+      .filter((d) => d.id !== current.id)
+      .flatMap((d) => topFoodHighlights(d))
+      .map((item) => item?.name)
+      .filter(Boolean)
+      .filter((name) => name !== correct)
+      .slice((currentIndex * 2) % 8, ((currentIndex * 2) % 8) + 2);
+    return [correct, ...distractors].slice(0, 3);
+  }, [current.id, currentIndex, foodHighlights]);
+
+  const handleJourneyTab = (id) => {
+    setJourneyTab(id);
+    setJourneySeenTabs((previous) => {
+      const next = new Set(previous);
+      next.add(id);
+      return next;
+    });
+  };
+
+  const departToNext = () => {
+    setStampBurst(true);
+    setTimeout(() => {
+      setStampBurst(false);
+      setJourneyOpen(false);
+      surpriseMe();
+    }, 800);
+  };
+
   return (
     <div className={`app-shell ${jumping ? 'jumping' : ''}`}>
       <header className="topbar">
@@ -279,7 +337,7 @@ export default function App() {
               <div>
                 <span>{current.guide?.name} says</span>
                 <h2>{current.greeting}</h2>
-                <p>{current.guide?.line}</p>
+                <p>{journeyTab === 'overview' ? current.guide?.line : guideReaction}</p>
               </div>
             </div>
 
@@ -299,8 +357,25 @@ export default function App() {
                 ['watch','Watch'],
                 ['special','Special Place']
               ].map(([id,label]) => (
-                <button key={id} className={journeyTab === id ? 'active' : ''} onClick={() => setJourneyTab(id)}>{label}</button>
+                <button key={id} className={journeyTab === id ? 'active' : ''} onClick={() => handleJourneyTab(id)}>
+                  {journeySeenTabs.has(id) && <CheckCircle2 size={13}/>} {label}
+                </button>
               ))}
+            </div>
+
+            <div className="journey-progress-strip">
+              <div className="journey-progress-copy">
+                <span>Destination completion</span>
+                <strong>{journeyProgress}%</strong>
+              </div>
+              <div className="journey-progress-line"><span style={{width: `${journeyProgress}%`}}/></div>
+              <div className="journey-badge-row">
+                {badgeDefinitions.map((badge) => (
+                  <span key={badge.id} className={badge.unlocked ? 'unlocked' : 'locked'}>
+                    <b>{badge.icon}</b>{badge.label}
+                  </span>
+                ))}
+              </div>
             </div>
 
             {journeyTab === 'overview' && <>
@@ -435,17 +510,69 @@ export default function App() {
               </div>
             </section>}
 
+            <section className="journey-quiz-card">
+              <div className="quiz-heading">
+                <CircleHelp size={22}/>
+                <div>
+                  <span className="journey-kicker">QUICK MEMORY CHECK</span>
+                  <h3>Which one belongs to {current.name}?</h3>
+                </div>
+              </div>
+              <div className="quiz-options">
+                {quizOptions.map((option) => {
+                  const isCorrect = option === foodHighlights[0]?.name;
+                  const answered = Boolean(quizAnswer);
+                  return (
+                    <button
+                      key={option}
+                      className={answered ? (isCorrect ? 'correct' : quizAnswer === option ? 'wrong' : '') : ''}
+                      onClick={() => !answered && setQuizAnswer(option)}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+              {quizAnswer && (
+                <p className="quiz-result">
+                  {quizAnswer === foodHighlights[0]?.name
+                    ? `Nice — ${foodHighlights[0]?.name} is one of the dishes to remember.`
+                    : `Almost. The local answer here is ${foodHighlights[0]?.name}.`}
+                </p>
+              )}
+            </section>
+
+            <div className="before-you-leave">
+              <Lightbulb size={24}/>
+              <div>
+                <span className="journey-kicker">BEFORE YOU LEAVE</span>
+                <h3>Remember this one thing</h3>
+                <p>{current.fact}</p>
+              </div>
+            </div>
+
             <div className="journey-footer-card">
               <div className="guide-avatar large">{current.guide?.emoji}</div>
               <div>
                 <span className="journey-kicker">{current.guide?.name} is seeing you off</span>
                 <h2>{current.goodbye}</h2>
-                <p>You’ve explored {current.name}. Your passport stamp is already saved.</p>
+                <p>{journeyProgress === 100 ? `Full journey complete — your ${current.name} stamp is ready.` : `You explored ${journeyProgress}% of this destination. You can still leave and come back later.`}</p>
               </div>
-              <button className="primary" onClick={() => { setJourneyOpen(false); surpriseMe(); }}>
-                <DoorOpen size={18}/> Next country
+              <button className="primary" onClick={departToNext}>
+                <DoorOpen size={18}/> Stamp & travel
               </button>
             </div>
+
+            {stampBurst && (
+              <div className="stamp-burst" aria-live="polite">
+                <div className="stamp-burst-mark">
+                  <Stamp size={42}/>
+                  <span>{current.emoji}</span>
+                  <strong>{current.name}</strong>
+                  <small>ENTRY STAMPED</small>
+                </div>
+              </div>
+            )}
           </section>
         </main>
       )}
@@ -699,6 +826,16 @@ export default function App() {
                   <strong>{achievement}</strong>
                 </div>
                 <Sparkles size={18}/>
+              </div>
+
+              <div className="passport-badge-shelf">
+                <span className="journey-kicker">EXPLORER BADGES</span>
+                <div>
+                  <span className={visited >= 1 ? 'earned' : ''}>🍽️ Taste Explorer</span>
+                  <span className={visited >= 2 ? 'earned' : ''}>🎭 Culture Hunter</span>
+                  <span className={continents >= 2 ? 'earned' : ''}>🌍 Border Crosser</span>
+                  <span className={visited >= 5 ? 'earned' : ''}>🏅 World Hopper</span>
+                </div>
               </div>
             </div>
           </section>
