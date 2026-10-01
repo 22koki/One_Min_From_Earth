@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Globe from 'react-globe.gl';
 import {
   Globe2, Search, Shuffle, Heart, Stamp, Trophy,
-  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck
+  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
 import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard } from './media.js';
@@ -306,6 +306,23 @@ export default function App() {
               </div>
             </div>
 
+            <div className="overview-extras">
+              <article className="did-you-know-card">
+                <Lightbulb size={24}/>
+                <span>Did you know?</span>
+                <p>{current.fact}</p>
+              </article>
+              <article className="explorer-badges-card">
+                <span className="journey-kicker">COLLECTIBLE MOMENTS</span>
+                <div className="mini-badges">
+                  <span><Camera size={15}/> Visual icon</span>
+                  <span><Utensils size={15}/> Food story</span>
+                  <span><Music2 size={15}/> Culture & sound</span>
+                  <span><Leaf size={15}/> Local feature</span>
+                </div>
+              </article>
+            </div>
+
             <div className="media-mosaic">
               {journeyMedia.overview.map((item, index) => (
                 <figure key={item.url} className={index === 0 ? 'wide' : ''}>
@@ -322,7 +339,14 @@ export default function App() {
                 {foodHighlights.map((item, index) => (
                   <article className="feature-showcase-card" key={item.name}>
                     <div className="feature-image-wrap">
-                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : <div className="media-placeholder"><span>{current.emoji}</span><small>Verified image unavailable</small></div>}
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : (
+                        <div className="feature-art-fallback food-art">
+                          <span className="fallback-flag">{current.emoji}</span>
+                          <Utensils size={34}/>
+                          <b>{item.name}</b>
+                          <small>{current.country}</small>
+                        </div>
+                      )}
                       <span className="feature-number">0{index + 1}</span>
                     </div>
                     <div className="feature-card-copy">
@@ -346,7 +370,14 @@ export default function App() {
                 {cultureHighlights.map((item, index) => (
                   <article className="feature-showcase-card culture-feature" key={item.name}>
                     <div className="feature-image-wrap">
-                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : <div className="media-placeholder"><span>{current.emoji}</span><small>Verified image unavailable</small></div>}
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : (
+                        <div className="feature-art-fallback culture-art">
+                          <span className="fallback-flag">{current.emoji}</span>
+                          <Palette size={34}/>
+                          <b>{item.name}</b>
+                          <small>{current.country}</small>
+                        </div>
+                      )}
                       <span className="feature-number">0{index + 1}</span>
                     </div>
                     <div className="feature-card-copy">
