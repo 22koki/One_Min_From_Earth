@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Globe from 'react-globe.gl';
 import {
   Globe2, Search, Shuffle, Heart, Stamp, Trophy,
-  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette, CheckCircle2, Award, CircleHelp
+  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette, CheckCircle2, Award, CircleHelp, Volume2, VolumeX, Route, ListPlus, PlayCircle
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
 import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard } from './media.js';
@@ -42,6 +42,10 @@ export default function App() {
   const [journeySeenTabs, setJourneySeenTabs] = useState(() => new Set(['overview']));
   const [quizAnswer, setQuizAnswer] = useState('');
   const [stampBurst, setStampBurst] = useState(false);
+  const [arrivalOpen, setArrivalOpen] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
+  const [wishlist, setWishlist] = useState(() => JSON.parse(localStorage.getItem('one-minute-wishlist') || '[]'));
+  const [tasteList, setTasteList] = useState(() => JSON.parse(localStorage.getItem('one-minute-tastes') || '[]'));
   const globeRef = useRef();
   const current = destinations[currentIndex];
 
@@ -67,6 +71,9 @@ export default function App() {
   useEffect(() => {
     setJourneySeenTabs(new Set(['overview']));
     setQuizAnswer('');
+    setArrivalOpen(true);
+    const t = setTimeout(() => setArrivalOpen(false), 1400);
+    return () => clearTimeout(t);
   }, [current.id]);
 
   useEffect(() => {
@@ -217,6 +224,30 @@ export default function App() {
     }
   };
 
+  const speak = (text) => {
+    if (!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text.replace(/\([^)]*\)/g, '').trim());
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleWishlist = () => {
+    setWishlist((prev) => {
+      const next = prev.includes(current.id) ? prev.filter((id) => id !== current.id) : [...prev, current.id];
+      localStorage.setItem('one-minute-wishlist', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const saveTaste = (name) => {
+    if (!name) return;
+    setTasteList((prev) => {
+      const next = prev.includes(name) ? prev : [...prev, name];
+      localStorage.setItem('one-minute-tastes', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const toggleFavorite = () => {
     setSaved((previous) => {
       const favorites = previous.favorites.includes(current.id)
@@ -345,8 +376,18 @@ export default function App() {
         </div>
       </header>
 
+      {arrivalOpen && (
+        <div className="arrival-overlay" aria-live="polite">
+          <div className="arrival-flight-line"><PlaneTakeoff size={26}/></div>
+          <span>{current.emoji}</span>
+          <small>ARRIVING IN</small>
+          <strong>{current.name}</strong>
+          <p>Packing your passport…</p>
+        </div>
+      )}
+
       {tab === 'discover' && journeyOpen && (
-        <main className="journey-page">
+        <main className={`journey-page local-${localTime.slice(-2)}`}>
           <div className="journey-hero" style={photoMap[current.id] ? {
             backgroundImage: `linear-gradient(180deg, rgba(6,17,31,.10), rgba(6,17,31,.92)), url("${photoMap[current.id]}")`
           } : undefined}>
@@ -456,6 +497,9 @@ export default function App() {
                       <span>Local favourite</span>
                       <h3>{item.name}</h3>
                       <p>{item.fact}</p>
+                      <button className={`taste-save ${tasteList.includes(item.name) ? 'saved' : ''}`} onClick={() => saveTaste(item.name)}>
+                        <ListPlus size={14}/>{tasteList.includes(item.name) ? 'Saved to Taste List' : 'Would try this'}
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -468,6 +512,12 @@ export default function App() {
                 <strong>{current.greeting}</strong>
                 <span>{current.language}</span>
                 <p>{current.guide?.line}</p>
+                <div className="local-words">
+                  <button onClick={() => speak(current.greeting)}><Volume2 size={15}/> Hear hello</button>
+                  <button onClick={() => speak(current.goodbye)}><Volume2 size={15}/> Hear goodbye</button>
+                  <span><b>Hello</b>{current.greeting}</span>
+                  <span><b>Goodbye</b>{current.goodbye}</span>
+                </div>
               </div>
               <div className="feature-three-grid">
                 {cultureHighlights.map((item, index) => (
@@ -675,11 +725,20 @@ export default function App() {
               >
                 <Heart size={21} fill="currentColor" />
               </button>
+              <button className={`wishlist-btn ${wishlist.includes(current.id) ? 'saved' : ''}`} onClick={toggleWishlist}>
+                <ListPlus size={16}/>{wishlist.includes(current.id) ? 'On wishlist' : 'Would visit'}
+              </button>
+              <button className="sound-btn" onClick={() => setSoundOn(!soundOn)}>
+                {soundOn ? <Volume2 size={16}/> : <VolumeX size={16}/>}
+                {soundOn ? 'Ambient on' : 'Ambient off'}
+              </button>
             </div>
 
             <div className="destination-grid">
-              <article
-                className="scene-card scene-large"
+              <button
+                className="scene-card scene-large scene-explore-button"
+                onClick={() => jumpTo(current.id)}
+                aria-label={`Explore ${current.name}`}
                 style={photoUrl ? {
                   backgroundImage: `linear-gradient(180deg, rgba(7,20,38,.12), rgba(7,20,38,.84)), url("${photoUrl}")`
                 } : undefined}
@@ -690,9 +749,10 @@ export default function App() {
                   <div className="scene-links">
                     <a href={mapUrl} target="_blank" rel="noreferrer"><Map size={16} /> Open map</a>
                     {photoUrl && <span><ImageIcon size={16} /> Live image</span>}
+                    <span className="explore-photo-cta"><PlayCircle size={16}/> Explore this place</span>
                   </div>
                 </div>
-              </article>
+              </button>
 
               <article className="info-card">
                 <span><CloudSun size={15} /> Live weather</span>
@@ -856,6 +916,11 @@ export default function App() {
                   <span className={visited >= 5 ? 'earned' : ''}>🏅 World Hopper</span>
                 </div>
               </div>
+
+              <div className="passport-lists">
+                <div><span>WISHLIST</span><strong>{wishlist.length}</strong><small>places you want to visit</small></div>
+                <div><span>TASTE LIST</span><strong>{tasteList.length}</strong><small>dishes you want to try</small></div>
+              </div>
             </div>
           </section>
 
@@ -925,6 +990,11 @@ export default function App() {
               <p className="eyebrow">TRAVEL LOG</p>
               <h1>Places you’ve discovered</h1>
             </div>
+          </div>
+
+          <div className="route-ribbon">
+            <Route size={20}/>
+            <span>{saved.history.slice().reverse().map((id) => destinations.find((d) => d.id === id)?.emoji).filter(Boolean).join('  →  ') || 'Your route will appear here'}</span>
           </div>
 
           <div className="history-list">
