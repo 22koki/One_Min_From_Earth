@@ -5,7 +5,7 @@ import {
   MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
-import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchFeatureImage } from './media.js';
+import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard } from './media.js';
 
 const STORAGE = 'one-minute-from-earth-v1';
 
@@ -122,15 +122,13 @@ export default function App() {
       const foodNames = topFoodHighlights(current);
       const cultureNames = topCultureHighlights(current);
 
-      const foodCards = await Promise.all(foodNames.map(async (name) => ({
-        name,
-        image: await fetchFeatureImage(`${name} ${current.country} food`, `${current.name} ${current.country} cuisine`)
-      })));
+      const foodCards = await Promise.all(
+        foodNames.map((name) => fetchVerifiedFeatureCard(name, current, 'food'))
+      );
 
-      const cultureCards = await Promise.all(cultureNames.map(async (name) => ({
-        name,
-        image: await fetchFeatureImage(`${name} ${current.country} culture`, `${current.name} ${current.country} tradition`)
-      })));
+      const cultureCards = await Promise.all(
+        cultureNames.map((feature) => fetchVerifiedFeatureCard(feature, current, 'culture'))
+      );
 
       if (!cancelled) {
         setFoodHighlights(foodCards);
@@ -324,12 +322,13 @@ export default function App() {
                 {foodHighlights.map((item, index) => (
                   <article className="feature-showcase-card" key={item.name}>
                     <div className="feature-image-wrap">
-                      {item.image?.url ? <img src={item.image.url} alt={item.name} loading="lazy"/> : <div className="media-placeholder">{current.emoji}</div>}
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : <div className="media-placeholder"><span>{current.emoji}</span><small>Verified image unavailable</small></div>}
                       <span className="feature-number">0{index + 1}</span>
                     </div>
                     <div className="feature-card-copy">
                       <span>Local favourite</span>
                       <h3>{item.name}</h3>
+                      <p>{item.fact}</p>
                     </div>
                   </article>
                 ))}
@@ -347,12 +346,13 @@ export default function App() {
                 {cultureHighlights.map((item, index) => (
                   <article className="feature-showcase-card culture-feature" key={item.name}>
                     <div className="feature-image-wrap">
-                      {item.image?.url ? <img src={item.image.url} alt={item.name} loading="lazy"/> : <div className="media-placeholder">{current.emoji}</div>}
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : <div className="media-placeholder"><span>{current.emoji}</span><small>Verified image unavailable</small></div>}
                       <span className="feature-number">0{index + 1}</span>
                     </div>
                     <div className="feature-card-copy">
                       <span>Culture</span>
                       <h3>{item.name}</h3>
+                      <p>{item.fact}</p>
                     </div>
                   </article>
                 ))}
