@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Globe from 'react-globe.gl';
 import {
   Globe2, Search, Shuffle, Heart, Stamp, Trophy,
-  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen
+  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
-import { curatedVideos, fetchWikiImages, youtubeSearchUrl } from './media.js';
+import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchFeatureImage } from './media.js';
 
 const STORAGE = 'one-minute-from-earth-v1';
 
@@ -35,8 +35,16 @@ export default function App() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [photoMap, setPhotoMap] = useState({});
   const [jumping, setJumping] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('one-minute-theme') || 'dark');
+  const [foodHighlights, setFoodHighlights] = useState([]);
+  const [cultureHighlights, setCultureHighlights] = useState([]);
   const globeRef = useRef();
   const current = destinations[currentIndex];
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('one-minute-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -110,6 +118,24 @@ export default function App() {
         fetchWikiImages(`${specialQuery || current.name} ${current.country}`, 3).catch(() => [])
       ]);
       if (!cancelled) setJourneyMedia({ overview, food, culture, special });
+
+      const foodNames = topFoodHighlights(current);
+      const cultureNames = topCultureHighlights(current);
+
+      const foodCards = await Promise.all(foodNames.map(async (name) => ({
+        name,
+        image: await fetchFeatureImage(`${name} ${current.country} food`, `${current.name} ${current.country} cuisine`)
+      })));
+
+      const cultureCards = await Promise.all(cultureNames.map(async (name) => ({
+        name,
+        image: await fetchFeatureImage(`${name} ${current.country} culture`, `${current.name} ${current.country} tradition`)
+      })));
+
+      if (!cancelled) {
+        setFoodHighlights(foodCards);
+        setCultureHighlights(cultureCards);
+      }
     };
     loadJourneyMedia();
     return () => { cancelled = true; };
@@ -222,11 +248,17 @@ export default function App() {
           <span>One Minute From Earth</span>
         </button>
 
-        <nav aria-label="Primary navigation">
-          <button className={tab === 'discover' ? 'active' : ''} onClick={() => setTab('discover')}>Discover</button>
-          <button className={tab === 'passport' ? 'active' : ''} onClick={() => setTab('passport')}>Passport</button>
-          <button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>History</button>
-        </nav>
+        <div className="topbar-actions">
+          <nav aria-label="Primary navigation">
+            <button className={tab === 'discover' ? 'active' : ''} onClick={() => setTab('discover')}>Discover</button>
+            <button className={tab === 'passport' ? 'active' : ''} onClick={() => setTab('passport')}>Passport</button>
+            <button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>History</button>
+          </nav>
+          <button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle light and dark mode">
+            {theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}
+            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          </button>
+        </div>
       </header>
 
       {tab === 'discover' && journeyOpen && (
@@ -287,24 +319,42 @@ export default function App() {
             </>}
 
             {journeyTab === 'food' && <section className="journey-tab-panel">
-              <div className="tab-heading"><Utensils size={22}/><div><span className="journey-kicker">TASTE THE PLACE</span><h2>{current.food}</h2></div></div>
-              <div className="media-mosaic food-mosaic">
-                {journeyMedia.food.map((item) => (
-                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy"/><figcaption>{item.title}</figcaption></figure>
+              <div className="tab-heading"><Utensils size={22}/><div><span className="journey-kicker">3 FAMOUS DISHES</span><h2>Taste {current.name}</h2></div></div>
+              <div className="feature-three-grid">
+                {foodHighlights.map((item, index) => (
+                  <article className="feature-showcase-card" key={item.name}>
+                    <div className="feature-image-wrap">
+                      {item.image?.url ? <img src={item.image.url} alt={item.name} loading="lazy"/> : <div className="media-placeholder">{current.emoji}</div>}
+                      <span className="feature-number">0{index + 1}</span>
+                    </div>
+                    <div className="feature-card-copy">
+                      <span>Local favourite</span>
+                      <h3>{item.name}</h3>
+                    </div>
+                  </article>
                 ))}
               </div>
             </section>}
 
             {journeyTab === 'culture' && <section className="journey-tab-panel">
-              <div className="tab-heading"><Languages size={22}/><div><span className="journey-kicker">CULTURE IN MOTION</span><h2>{current.culture}</h2></div></div>
+              <div className="tab-heading"><Languages size={22}/><div><span className="journey-kicker">3 CULTURAL SIGNATURES</span><h2>Meet the people behind the place</h2></div></div>
               <div className="culture-callout">
                 <strong>{current.greeting}</strong>
                 <span>{current.language}</span>
                 <p>{current.guide?.line}</p>
               </div>
-              <div className="media-mosaic">
-                {journeyMedia.culture.map((item) => (
-                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy"/><figcaption>{item.title}</figcaption></figure>
+              <div className="feature-three-grid">
+                {cultureHighlights.map((item, index) => (
+                  <article className="feature-showcase-card culture-feature" key={item.name}>
+                    <div className="feature-image-wrap">
+                      {item.image?.url ? <img src={item.image.url} alt={item.name} loading="lazy"/> : <div className="media-placeholder">{current.emoji}</div>}
+                      <span className="feature-number">0{index + 1}</span>
+                    </div>
+                    <div className="feature-card-copy">
+                      <span>Culture</span>
+                      <h3>{item.name}</h3>
+                    </div>
+                  </article>
                 ))}
               </div>
             </section>}
@@ -557,35 +607,51 @@ export default function App() {
       )}
 
       {tab === 'passport' && (
-        <main className="dashboard">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">YOUR JOURNEY</p>
-              <h1>Digital Passport</h1>
-              <p className="lede small">Every new destination earns a stamp automatically.</p>
+        <main className="dashboard passport-page">
+          <section className="passport-hero">
+            <div className="passport-cover">
+              <div className="passport-emblem"><Globe2 size={42}/></div>
+              <span className="passport-label">ONE MINUTE FROM EARTH</span>
+              <h1>WORLD<br/>PASSPORT</h1>
+              <p>Issued to a curious explorer</p>
+              <div className="passport-cover-footer"><BookOpen size={18}/><span>{visited} destinations stamped</span></div>
             </div>
-          </div>
 
-          <div className="stats-grid">
-            <article><Stamp /><strong>{visited}</strong><span>Passport stamps</span></article>
-            <article><MapPinned /><strong>{continents}</strong><span>Continents reached</span></article>
-            <article><Heart /><strong>{saved.favorites.length}</strong><span>Favorites</span></article>
-            <article><Trophy /><strong>{achievement}</strong><span>Current achievement</span></article>
-          </div>
+            <div className="passport-summary">
+              <p className="eyebrow">YOUR JOURNEY</p>
+              <h2>Every place leaves a mark.</h2>
+              <p className="lede small">Collect destinations, continents and little stories as you explore.</p>
+              <div className="passport-stats">
+                <article><Stamp /><strong>{visited}</strong><span>Stamps</span></article>
+                <article><MapPinned /><strong>{continents}</strong><span>Continents</span></article>
+                <article><Heart /><strong>{saved.favorites.length}</strong><span>Favorites</span></article>
+                <article><Trophy /><strong>{achievement}</strong><span>Rank</span></article>
+              </div>
+            </div>
+          </section>
 
-          <div className="passport-grid">
-            {destinations.map((destination) => (
-              <button
-                className={`stamp-card ${saved.stamps.includes(destination.id) ? 'earned' : 'locked'}`}
-                key={destination.id}
-                onClick={() => saved.stamps.includes(destination.id) && jumpTo(destination.id)}
-              >
-                <span className="stamp-emoji">{destination.emoji}</span>
-                <strong>{destination.name}</strong>
-                <small>{saved.stamps.includes(destination.id) ? 'STAMPED' : 'UNDISCOVERED'}</small>
-              </button>
-            ))}
-          </div>
+          <section className="passport-book">
+            <div className="passport-book-heading">
+              <div><span className="journey-kicker">STAMP COLLECTION</span><h2>Places in your passport</h2></div>
+              <BadgeCheck size={28}/>
+            </div>
+            <div className="passport-grid passport-stamp-grid">
+              {destinations.map((destination, index) => (
+                <button
+                  className={`stamp-card passport-stamp-card ${saved.stamps.includes(destination.id) ? 'earned' : 'locked'}`}
+                  key={destination.id}
+                  onClick={() => saved.stamps.includes(destination.id) && jumpTo(destination.id)}
+                >
+                  <span className="passport-stamp-ring">
+                    <span className="stamp-emoji">{destination.emoji}</span>
+                  </span>
+                  <span className="passport-stamp-country">{destination.country}</span>
+                  <strong>{destination.name}</strong>
+                  <small>{saved.stamps.includes(destination.id) ? `STAMPED · #${String(index + 1).padStart(2,'0')}` : 'UNDISCOVERED'}</small>
+                </button>
+              ))}
+            </div>
+          </section>
         </main>
       )}
 
