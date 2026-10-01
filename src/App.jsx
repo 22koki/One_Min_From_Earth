@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Globe2, Search, Shuffle, Heart, Stamp, Trophy, History,
-  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff
+  Globe2, Search, Shuffle, Heart, Stamp, Trophy,
+  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
 
@@ -26,6 +26,9 @@ export default function App() {
   const [category, setCategory] = useState('All');
   const [saved, setSaved] = useState(loadState);
   const [tab, setTab] = useState('discover');
+  const [liveWeather, setLiveWeather] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [jumping, setJumping] = useState(false);
   const current = destinations[currentIndex];
 
   useEffect(() => {
@@ -40,6 +43,39 @@ export default function App() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadLiveData = async () => {
+      try {
+        const weatherResponse = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${current.lat}&longitude=${current.lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto`
+        );
+        const weatherJson = await weatherResponse.json();
+        if (!cancelled && weatherJson.current) setLiveWeather(weatherJson.current);
+      } catch {
+        if (!cancelled) setLiveWeather(null);
+      }
+
+      try {
+        const wikiResponse = await fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(current.wikiTitle)}`
+        );
+        const wikiJson = await wikiResponse.json();
+        if (!cancelled) setPhotoUrl(wikiJson?.thumbnail?.source || wikiJson?.originalimage?.source || '');
+      } catch {
+        if (!cancelled) setPhotoUrl('');
+      }
+    };
+    loadLiveData();
+    return () => { cancelled = true; };
+  }, [current.id, current.lat, current.lon, current.wikiTitle]);
+
+  useEffect(() => {
+    setJumping(true);
+    const timeout = setTimeout(() => setJumping(false), 700);
+    return () => clearTimeout(timeout);
+  }, [current.id]);
 
   useEffect(() => {
     setSaved((previous) => {
@@ -100,6 +136,18 @@ export default function App() {
     saved.stamps.map((id) => destinations.find((d) => d.id === id)?.continent).filter(Boolean)
   ).size;
 
+  const localTime = new Intl.DateTimeFormat(undefined, {
+    timeZone: current.timeZone,
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date());
+
+  const weatherLabel = liveWeather
+    ? `${Math.round(liveWeather.temperature_2m)}°C`
+    : '—';
+
+  const mapUrl = `https://www.openstreetmap.org/?mlat=${current.lat}&mlon=${current.lon}#map=7/${current.lat}/${current.lon}`;
+
   const achievement =
     visited >= 8 ? 'World Hopper' :
     visited >= 5 ? 'Globetrotter' :
@@ -107,7 +155,7 @@ export default function App() {
     'First Steps';
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${jumping ? 'jumping' : ''}`}>
       <header className="topbar">
         <button className="brand" onClick={() => setTab('discover')} aria-label="Go to Discover">
           <span className="brand-orbit"><Globe2 size={24} /></span>
@@ -185,23 +233,32 @@ export default function App() {
             </div>
 
             <div className="destination-grid">
-              <article className="scene-card scene-large">
+              <article
+                className="scene-card scene-large"
+                style={photoUrl ? {
+                  backgroundImage: `linear-gradient(180deg, rgba(7,20,38,.12), rgba(7,20,38,.84)), url("${photoUrl}")`
+                } : undefined}
+              >
                 <div className="scene-badge">{current.category}</div>
                 <div className="scene-overlay">
                   <h3>{current.intro}</h3>
+                  <div className="scene-links">
+                    <a href={mapUrl} target="_blank" rel="noreferrer"><Map size={16} /> Open map</a>
+                    {photoUrl && <span><ImageIcon size={16} /> Live image</span>}
+                  </div>
                 </div>
               </article>
 
               <article className="info-card">
-                <span>Local weather</span>
-                <strong>{current.temperature}</strong>
-                <small>Illustrative MVP snapshot</small>
+                <span><CloudSun size={15} /> Live weather</span>
+                <strong>{weatherLabel}</strong>
+                <small>{liveWeather ? `Feels like ${Math.round(liveWeather.apparent_temperature)}°C · Wind ${Math.round(liveWeather.wind_speed_10m)} km/h` : 'Live data unavailable'}</small>
               </article>
 
               <article className="info-card">
-                <span>Local time</span>
-                <strong>{current.localTime}</strong>
-                <small>Destination snapshot</small>
+                <span><Clock3 size={15} /> Local time</span>
+                <strong>{localTime}</strong>
+                <small>{current.timeZone}</small>
               </article>
 
               <article className="fact-card">
