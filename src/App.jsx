@@ -46,6 +46,9 @@ export default function App() {
   const [soundOn, setSoundOn] = useState(false);
   const [wishlist, setWishlist] = useState(() => JSON.parse(localStorage.getItem('one-minute-wishlist') || '[]'));
   const [tasteList, setTasteList] = useState(() => JSON.parse(localStorage.getItem('one-minute-tastes') || '[]'));
+  const [exploreMode, setExploreMode] = useState('quick');
+  const [landmarkRevealed, setLandmarkRevealed] = useState(false);
+  const [routeStops, setRouteStops] = useState([]);
   const globeRef = useRef();
   const current = destinations[currentIndex];
 
@@ -71,6 +74,7 @@ export default function App() {
   useEffect(() => {
     setJourneySeenTabs(new Set(['overview']));
     setQuizAnswer('');
+    setLandmarkRevealed(false);
     setArrivalOpen(true);
     const t = setTimeout(() => setArrivalOpen(false), 1400);
     return () => clearTimeout(t);
@@ -82,6 +86,7 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    if (exploreMode === 'deep') return;
     const timer = setInterval(() => {
       setSeconds((value) => {
         if (value <= 1) {
@@ -92,7 +97,7 @@ export default function App() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [exploreMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -203,6 +208,24 @@ export default function App() {
       return categoryMatch && queryMatch;
     });
   }, [query, category]);
+
+  const startThemedRoute = (themeName) => {
+    const pools = {
+      islands: destinations.filter((d) => ['Coastal','Rare'].includes(d.category)),
+      culture: destinations.filter((d) => d.category === 'Culture'),
+      wild: destinations.filter((d) => ['Wild','Mountains','Desert'].includes(d.category))
+    };
+    const pool = pools[themeName] || destinations;
+    const picks = [...pool].sort(() => Math.random() - 0.5).slice(0, 5);
+    setRouteStops(picks.map((d) => d.id));
+    if (picks[0]) jumpTo(picks[0].id);
+  };
+
+  const rareSurprise = () => {
+    const rare = destinations.filter((d) => d.category === 'Rare');
+    const pick = rare[Math.floor(Math.random() * rare.length)];
+    if (pick) jumpTo(pick.id);
+  };
 
   const surpriseMe = () => {
     let next = currentIndex;
@@ -450,6 +473,19 @@ export default function App() {
               </div>
             </div>
 
+            <section className="landmark-challenge">
+              <div>
+                <span className="journey-kicker">LANDMARK CHALLENGE</span>
+                <h3>Can you recognize {current.name} before the reveal?</h3>
+              </div>
+              <div className={`landmark-photo ${landmarkRevealed ? 'revealed' : ''}`} style={{
+                backgroundImage: `linear-gradient(180deg,rgba(4,10,18,.08),rgba(4,10,18,.35)),url("${photoMap[current.id] || fallbackImage(current, current.name)}")`
+              }}>
+                {!landmarkRevealed && <button onClick={() => setLandmarkRevealed(true)}><Camera size={18}/> Reveal landmark</button>}
+                {landmarkRevealed && <span>{current.emoji} {current.name}, {current.country}</span>}
+              </div>
+            </section>
+
             <div className="overview-extras">
               <article className="did-you-know-card">
                 <Lightbulb size={24}/>
@@ -662,9 +698,22 @@ export default function App() {
 
               <div className="hero-actions">
                 <button className="primary" onClick={surpriseMe}><Shuffle size={18} /> Surprise me</button>
+                <button className="secondary" onClick={rareSurprise}><Sparkles size={18}/> Rare place</button>
                 <button className="secondary" onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}>
                   <Compass size={18} /> Explore places
                 </button>
+              </div>
+
+              <div className="mode-route-row">
+                <div className="mode-switch">
+                  <button className={exploreMode === 'quick' ? 'active' : ''} onClick={() => setExploreMode('quick')}>60-sec mode</button>
+                  <button className={exploreMode === 'deep' ? 'active' : ''} onClick={() => setExploreMode('deep')}>Deep Explore</button>
+                </div>
+                <div className="route-actions">
+                  <button onClick={() => startThemedRoute('islands')}>Island Escape</button>
+                  <button onClick={() => startThemedRoute('culture')}>Culture Trail</button>
+                  <button onClick={() => startThemedRoute('wild')}>Wild Route</button>
+                </div>
               </div>
 
               <div className="micro-stats">
@@ -703,9 +752,9 @@ export default function App() {
               </div>
 
               <div className="countdown-card">
-                <div className="countdown-label"><TimerReset size={16} /> Next jump in</div>
-                <strong>00:{String(seconds).padStart(2, '0')}</strong>
-                <div className="progress"><span style={{ width: `${(seconds / 60) * 100}%` }} /></div>
+                <div className="countdown-label"><TimerReset size={16} /> {exploreMode === 'deep' ? 'Deep Explore' : 'Next jump in'}</div>
+                <strong>{exploreMode === 'deep' ? '∞' : `00:${String(seconds).padStart(2, '0')}`}</strong>
+                <div className="progress"><span style={{ width: exploreMode === 'deep' ? '100%' : `${(seconds / 60) * 100}%` }} /></div>
               </div>
             </section>
           </main>
@@ -921,6 +970,22 @@ export default function App() {
                 <div><span>WISHLIST</span><strong>{wishlist.length}</strong><small>places you want to visit</small></div>
                 <div><span>TASTE LIST</span><strong>{tasteList.length}</strong><small>dishes you want to try</small></div>
               </div>
+            </div>
+          </section>
+
+          <section className="passport-scrapbook">
+            <div className="passport-book-heading">
+              <div><span className="journey-kicker">TRAVEL SCRAPBOOK</span><h2>Little things you collected</h2></div>
+              <Camera size={28}/>
+            </div>
+            <div className="scrapbook-grid">
+              {saved.stamps.slice(0,6).map((id) => {
+                const d = destinations.find((item) => item.id === id);
+                if (!d) return null;
+                return <article key={id} style={{backgroundImage:`linear-gradient(180deg,transparent,rgba(5,10,18,.82)),url("${photoMap[id] || fallbackImage(d,d.name)}")`}}>
+                  <span>{d.emoji}</span><strong>{d.name}</strong><small>{d.fact}</small>
+                </article>;
+              })}
             </div>
           </section>
 
