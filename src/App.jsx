@@ -45,6 +45,25 @@ export default function App() {
   const globeRef = useRef();
   const current = destinations[currentIndex];
 
+  const fallbackImage = (destination, label = 'Explore') => {
+    const bg = theme === 'dark' ? '#102238' : '#e8f1fb';
+    const fg = theme === 'dark' ? '#ffffff' : '#102033';
+    const accent = destination?.accent === 'rose' ? '#d76498' : destination?.accent === 'sunset' ? '#ef9b55' : '#4ec7d2';
+    const title = String(label).slice(0, 34).replace(/[<>&"']/g, '');
+    const country = String(destination?.country || '').replace(/[<>&"']/g, '');
+    const emoji = destination?.emoji || '🌍';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650">
+      <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="${bg}"/><stop offset="1" stop-color="${accent}"/></linearGradient></defs>
+      <rect width="100%" height="100%" fill="url(#g)"/>
+      <circle cx="760" cy="120" r="150" fill="rgba(255,255,255,.10)"/>
+      <circle cx="100" cy="560" r="120" fill="rgba(255,255,255,.08)"/>
+      <text x="70" y="130" font-size="72">${emoji}</text>
+      <text x="70" y="420" fill="${fg}" font-family="Arial,sans-serif" font-size="52" font-weight="700">${title}</text>
+      <text x="70" y="480" fill="${fg}" opacity=".72" font-family="Arial,sans-serif" font-size="26">${country}</text>
+    </svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
+
   useEffect(() => {
     setJourneySeenTabs(new Set(['overview']));
     setQuizAnswer('');
@@ -410,7 +429,7 @@ export default function App() {
             <div className="media-mosaic">
               {journeyMedia.overview.map((item, index) => (
                 <figure key={item.url} className={index === 0 ? 'wide' : ''}>
-                  <img src={item.url} alt={item.title} loading="lazy"/>
+                  <img src={item.url} alt={item.title} loading="lazy" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImage(current, item.title); }}/>
                   <figcaption>{item.title}</figcaption>
                 </figure>
               ))}
@@ -423,7 +442,7 @@ export default function App() {
                 {foodHighlights.map((item, index) => (
                   <article className="feature-showcase-card" key={item.name}>
                     <div className="feature-image-wrap">
-                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : (
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImage(current, item.name); }}/> : (
                         <div className="feature-art-fallback food-art">
                           <span className="fallback-flag">{current.emoji}</span>
                           <Utensils size={34}/>
@@ -454,7 +473,7 @@ export default function App() {
                 {cultureHighlights.map((item, index) => (
                   <article className="feature-showcase-card culture-feature" key={item.name}>
                     <div className="feature-image-wrap">
-                      {item.image ? <img src={item.image} alt={item.name} loading="lazy"/> : (
+                      {item.image ? <img src={item.image} alt={item.name} loading="lazy" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImage(current, item.name); }}/> : (
                         <div className="feature-art-fallback culture-art">
                           <span className="fallback-flag">{current.emoji}</span>
                           <Palette size={34}/>
@@ -505,7 +524,7 @@ export default function App() {
               <p className="special-copy">{current.museum ? 'A place to go deeper into the history, art or heritage of this destination.' : current.unique}</p>
               <div className="media-mosaic special-mosaic">
                 {journeyMedia.special.map((item) => (
-                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy"/><figcaption>{item.title}</figcaption></figure>
+                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImage(current, item.title); }}/><figcaption>{item.title}</figcaption></figure>
                 ))}
               </div>
             </section>}
@@ -858,12 +877,25 @@ export default function App() {
                     className={`passport-visa ${earned ? 'earned' : 'locked'} visa-${index % 4}`}
                     key={destination.id}
                     onClick={() => earned && jumpTo(destination.id)}
+                    style={{
+                      backgroundImage: `linear-gradient(180deg, rgba(8,16,28,.45), rgba(8,16,28,.88)), url("${photoMap[destination.id] || fallbackImage(destination, destination.name)}")`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
                   >
                     <div className="visa-topline">
                       <span>{earned ? 'ENTRY APPROVED' : 'NOT YET VISITED'}</span>
                       <span>{destination.emoji}</span>
                     </div>
                     <div className="visa-stamp-art">
+                      <span className="visa-photo-chip">
+                        <img
+                          src={photoMap[destination.id] || fallbackImage(destination, destination.name)}
+                          alt={destination.name}
+                          loading="lazy"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackImage(destination, destination.name); }}
+                        />
+                      </span>
                       <span className="visa-ring">
                         <Globe2 size={24}/>
                         <b>{destination.country.slice(0,3).toUpperCase()}</b>
