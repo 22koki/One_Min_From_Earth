@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Globe from 'react-globe.gl';
 import {
   Globe2, Search, Shuffle, Heart, Stamp, Trophy,
   MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon
@@ -28,7 +29,9 @@ export default function App() {
   const [tab, setTab] = useState('discover');
   const [liveWeather, setLiveWeather] = useState(null);
   const [photoUrl, setPhotoUrl] = useState('');
+  const [photoMap, setPhotoMap] = useState({});
   const [jumping, setJumping] = useState(false);
+  const globeRef = useRef();
   const current = destinations[currentIndex];
 
   useEffect(() => {
@@ -42,6 +45,26 @@ export default function App() {
       });
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadCardImages = async () => {
+      const pairs = await Promise.all(destinations.map(async (destination) => {
+        try {
+          const response = await fetch(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(destination.wikiTitle)}`
+          );
+          const json = await response.json();
+          return [destination.id, json?.thumbnail?.source || json?.originalimage?.source || ''];
+        } catch {
+          return [destination.id, ''];
+        }
+      }));
+      if (!cancelled) setPhotoMap(Object.fromEntries(pairs));
+    };
+    loadCardImages();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -148,6 +171,21 @@ export default function App() {
 
   const mapUrl = `https://www.openstreetmap.org/?mlat=${current.lat}&mlon=${current.lon}#map=7/${current.lat}/${current.lon}`;
 
+  useEffect(() => {
+    const globe = globeRef.current;
+    if (!globe) return;
+    try {
+      globe.pointOfView({ lat: current.lat, lng: current.lon, altitude: 1.55 }, 1200);
+      const controls = globe.controls?.();
+      if (controls) {
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.35;
+      }
+    } catch {
+      // WebGL or control APIs may be unavailable in some browsers.
+    }
+  }, [current.id, current.lat, current.lon]);
+
   const achievement =
     visited >= 8 ? 'World Hopper' :
     visited >= 5 ? 'Globetrotter' :
@@ -197,14 +235,32 @@ export default function App() {
               </div>
             </section>
 
-            <section className="globe-stage" aria-label="Animated globe">
+            <section className="globe-stage" aria-label="Interactive 3D globe">
               <div className="orbit orbit-a" />
               <div className="orbit orbit-b" />
-              <div className="globe">
-                <span className="continent c1" />
-                <span className="continent c2" />
-                <span className="continent c3" />
-                <span className="pin">●</span>
+              <div className="real-globe-wrap">
+                <Globe
+                  ref={globeRef}
+                  width={420}
+                  height={420}
+                  backgroundColor="rgba(0,0,0,0)"
+                  globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+                  bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
+                  pointsData={destinations}
+                  pointLat="lat"
+                  pointLng="lon"
+                  pointAltitude={(d) => d.id === current.id ? 0.08 : 0.03}
+                  pointRadius={(d) => d.id === current.id ? 0.34 : 0.18}
+                  pointColor={(d) => d.id === current.id ? '#ff66c4' : '#58e5ff'}
+                  pointLabel={(d) => `${d.emoji} ${d.name}, ${d.country}`}
+                  onPointClick={(d) => jumpTo(d.id)}
+                  atmosphereColor="#5bdcff"
+                  atmosphereAltitude={0.18}
+                />
+                <div className="globe-caption">
+                  <span>Drag to explore</span>
+                  <strong>{current.name}</strong>
+                </div>
               </div>
 
               <div className="countdown-card">
@@ -303,18 +359,34 @@ export default function App() {
             <div className="card-grid">
               {filtered.map((destination) => (
                 <button
-                  className={`place-card accent-${destination.accent}`}
+                  className={`place-card accent-${destination.accent} ${saved.stamps.includes(destination.id) ? 'discovered-card' : ''}`}
                   key={destination.id}
                   onClick={() => jumpTo(destination.id)}
                 >
-                  <div className="place-visual">
-                    <span>{destination.emoji}</span>
-                    <PlaneTakeoff size={22} />
+                  <div
+                    className="place-visual"
+                    style={photoMap[destination.id] ? {
+                      backgroundImage: `linear-gradient(180deg, rgba(6,17,31,.08), rgba(6,17,31,.72)), url("${photoMap[destination.id]}")`
+                    } : undefined}
+                  >
+                    <div className="poster-topline">
+                      <span className="poster-badge">{destination.category}</span>
+                      <span className="poster-flag">{destination.emoji}</span>
+                    </div>
+                    <div className="poster-bottomline">
+                      <span>{destination.continent}</span>
+                      <PlaneTakeoff size={22} />
+                    </div>
+                    {saved.stamps.includes(destination.id) && <span className="visited-stamp">EXPLORED</span>}
                   </div>
                   <div className="place-copy">
-                    <small>{destination.category}</small>
+                    <small>{destination.country}</small>
                     <strong>{destination.name}</strong>
-                    <span>{destination.country}</span>
+                    <p>{destination.fact}</p>
+                    <div className="place-meta">
+                      <span>{destination.category}</span>
+                      <b>Explore now →</b>
+                    </div>
                   </div>
                 </button>
               ))}
