@@ -5,6 +5,7 @@ import {
   MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
+import { curatedVideos, fetchWikiImages, youtubeSearchUrl } from './media.js';
 
 const STORAGE = 'one-minute-from-earth-v1';
 
@@ -28,6 +29,8 @@ export default function App() {
   const [saved, setSaved] = useState(loadState);
   const [tab, setTab] = useState('discover');
   const [journeyOpen, setJourneyOpen] = useState(false);
+  const [journeyTab, setJourneyTab] = useState('overview');
+  const [journeyMedia, setJourneyMedia] = useState({ overview: [], food: [], culture: [], special: [] });
   const [liveWeather, setLiveWeather] = useState(null);
   const [photoUrl, setPhotoUrl] = useState('');
   const [photoMap, setPhotoMap] = useState({});
@@ -94,6 +97,23 @@ export default function App() {
     loadLiveData();
     return () => { cancelled = true; };
   }, [current.id, current.lat, current.lon, current.wikiTitle]);
+
+  useEffect(() => {
+    if (!journeyOpen) return;
+    let cancelled = false;
+    const loadJourneyMedia = async () => {
+      const specialQuery = current.museum ? current.museum.split(',')[0] : current.knownFor?.[0];
+      const [overview, food, culture, special] = await Promise.all([
+        fetchWikiImages(`${current.name} ${current.country}`, 4).catch(() => []),
+        fetchWikiImages(`${current.name} ${current.country} food cuisine`, 4).catch(() => []),
+        fetchWikiImages(`${current.name} ${current.country} culture tradition`, 4).catch(() => []),
+        fetchWikiImages(`${specialQuery || current.name} ${current.country}`, 3).catch(() => [])
+      ]);
+      if (!cancelled) setJourneyMedia({ overview, food, culture, special });
+    };
+    loadJourneyMedia();
+    return () => { cancelled = true; };
+  }, [journeyOpen, current.id]);
 
   useEffect(() => {
     setJumping(true);
@@ -232,6 +252,19 @@ export default function App() {
           </div>
 
           <section className="journey-content">
+            <div className="journey-tabs" role="tablist" aria-label="Destination sections">
+              {[
+                ['overview','Overview'],
+                ['food','Food'],
+                ['culture','Culture'],
+                ['watch','Watch'],
+                ['special','Special Place']
+              ].map(([id,label]) => (
+                <button key={id} className={journeyTab === id ? 'active' : ''} onClick={() => setJourneyTab(id)}>{label}</button>
+              ))}
+            </div>
+
+            {journeyTab === 'overview' && <>
             <div className="journey-intro-card">
               <div>
                 <span className="journey-kicker">WHY PEOPLE REMEMBER IT</span>
@@ -243,36 +276,74 @@ export default function App() {
               </div>
             </div>
 
-            <div className="journey-grid">
-              <article className="journey-card">
-                <Landmark size={22}/>
-                <span>Culture</span>
-                <h3>How the place feels</h3>
-                <p>{current.culture}</p>
-              </article>
-
-              <article className="journey-card">
-                <Landmark size={22}/>
-                <span>Museums & heritage</span>
-                <h3>What to explore deeper</h3>
-                <p>{current.museum}</p>
-              </article>
-
-              <article className="journey-card">
-                <Utensils size={22}/>
-                <span>Local food</span>
-                <h3>What to taste</h3>
-                <p>{current.food}</p>
-              </article>
-
-              <article className="journey-card">
-                <Languages size={22}/>
-                <span>Language</span>
-                <h3>{current.language}</h3>
-                <p><strong>Hello:</strong> {current.greeting}</p>
-                <p><strong>Goodbye:</strong> {current.goodbye}</p>
-              </article>
+            <div className="media-mosaic">
+              {journeyMedia.overview.map((item, index) => (
+                <figure key={item.url} className={index === 0 ? 'wide' : ''}>
+                  <img src={item.url} alt={item.title} loading="lazy"/>
+                  <figcaption>{item.title}</figcaption>
+                </figure>
+              ))}
             </div>
+            </>}
+
+            {journeyTab === 'food' && <section className="journey-tab-panel">
+              <div className="tab-heading"><Utensils size={22}/><div><span className="journey-kicker">TASTE THE PLACE</span><h2>{current.food}</h2></div></div>
+              <div className="media-mosaic food-mosaic">
+                {journeyMedia.food.map((item) => (
+                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy"/><figcaption>{item.title}</figcaption></figure>
+                ))}
+              </div>
+            </section>}
+
+            {journeyTab === 'culture' && <section className="journey-tab-panel">
+              <div className="tab-heading"><Languages size={22}/><div><span className="journey-kicker">CULTURE IN MOTION</span><h2>{current.culture}</h2></div></div>
+              <div className="culture-callout">
+                <strong>{current.greeting}</strong>
+                <span>{current.language}</span>
+                <p>{current.guide?.line}</p>
+              </div>
+              <div className="media-mosaic">
+                {journeyMedia.culture.map((item) => (
+                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy"/><figcaption>{item.title}</figcaption></figure>
+                ))}
+              </div>
+            </section>}
+
+            {journeyTab === 'watch' && <section className="journey-tab-panel">
+              <div className="tab-heading"><PlaneTakeoff size={22}/><div><span className="journey-kicker">WATCH & LISTEN</span><h2>Hear the place, not just read about it</h2></div></div>
+              <div className="video-grid">
+                {(curatedVideos[current.id] || []).map((video) => (
+                  <article className="video-card" key={video.youtubeId}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${video.youtubeId}`}
+                      title={video.title}
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                    <div><span>{video.type}</span><h3>{video.title}</h3></div>
+                  </article>
+                ))}
+                {(curatedVideos[current.id] || []).length === 0 && (
+                  <article className="video-fallback">
+                    <span className="journey-kicker">CURATED SEARCH</span>
+                    <h3>Find authentic music, food and culture clips for {current.name}</h3>
+                    <p>Open a focused YouTube search for local music, traditional food and cultural life.</p>
+                    <a href={youtubeSearchUrl(`${current.name} ${current.country} culture music food travel`)} target="_blank" rel="noreferrer">Browse videos ↗</a>
+                  </article>
+                )}
+              </div>
+            </section>}
+
+            {journeyTab === 'special' && <section className="journey-tab-panel">
+              <div className="tab-heading"><Landmark size={22}/><div><span className="journey-kicker">{current.museum ? 'MUSEUMS & HERITAGE' : 'SIGNATURE LOCAL FEATURE'}</span><h2>{current.museum || current.knownFor?.[0]}</h2></div></div>
+              <p className="special-copy">{current.museum ? 'A place to go deeper into the history, art or heritage of this destination.' : current.unique}</p>
+              <div className="media-mosaic special-mosaic">
+                {journeyMedia.special.map((item) => (
+                  <figure key={item.url}><img src={item.url} alt={item.title} loading="lazy"/><figcaption>{item.title}</figcaption></figure>
+                ))}
+              </div>
+            </section>}
 
             <div className="journey-footer-card">
               <div className="guide-avatar large">{current.guide?.emoji}</div>
