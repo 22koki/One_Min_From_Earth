@@ -225,6 +225,224 @@ const cultureHighlightsByDestination = {
   ]
 };
 
+const foodHighlightsByDestination = {
+  santorini: [
+    { name:"Tomatokeftedes", fact:"Santorini tomato fritters are made with the island's intensely flavoured cherry tomatoes and herbs.", query:"Tomatokeftedes Santorini tomato fritters Greece" },
+    { name:"Fava Santorinis", fact:"Santorini fava is a smooth yellow split-pea purée protected as a local agricultural product.", query:"Santorini fava yellow split pea Greece" },
+    { name:"White eggplant", fact:"Santorini's white eggplant is a local variety prized for its mild flavour and soft texture.", query:"Santorini white eggplant Greece" }
+  ],
+  athens: [
+    { name:"Souvlaki", fact:"Souvlaki is grilled meat served on skewers or wrapped in pita with simple accompaniments.", query:"Greek souvlaki pita Athens" },
+    { name:"Spanakopita", fact:"Spanakopita layers spinach and feta inside crisp filo pastry.", query:"Greek spanakopita spinach feta pastry" },
+    { name:"Loukoumades", fact:"Loukoumades are small fried dough bites traditionally finished with honey and cinnamon.", query:"Greek loukoumades honey Athens" }
+  ],
+  rome: [
+    { name:"Carbonara", fact:"Roman carbonara combines pasta, egg, pecorino, black pepper and guanciale without cream.", query:"Roman carbonara pasta Italy" },
+    { name:"Cacio e pepe", fact:"This Roman pasta relies on pecorino romano, black pepper and starchy pasta water.", query:"Cacio e pepe Rome Italy" },
+    { name:"Supplì", fact:"Supplì are Roman fried rice croquettes, often filled with tomato rice and mozzarella.", query:"Suppli Roman rice croquette" }
+  ],
+  venice: [
+    { name:"Cicchetti", fact:"Cicchetti are small Venetian bar snacks commonly eaten with a drink in a bacaro.", query:"Venetian cicchetti bacaro Italy" },
+    { name:"Sarde in saor", fact:"Sarde in saor pairs sardines with sweet-sour onions, vinegar, raisins and pine nuts.", query:"Sarde in saor Venice sardines" },
+    { name:"Risotto al nero di seppia", fact:"This Venetian risotto gets its dramatic colour and sea flavour from cuttlefish ink.", query:"Risotto al nero di seppia Venice" }
+  ],
+  paris: [
+    { name:"Croissant", fact:"The French croissant is a laminated pastry known for its buttery, flaky layers.", query:"French croissant Paris bakery" },
+    { name:"Crêpes", fact:"Crêpes can be served sweet or savoury and are a familiar French street and café food.", query:"French crepes Paris" },
+    { name:"French cheese", fact:"Paris markets and fromageries showcase cheeses from many regions of France.", query:"Paris fromagerie French cheese" }
+  ],
+  barcelona: [
+    { name:"Pa amb tomàquet", fact:"This Catalan staple rubs ripe tomato onto bread, then adds olive oil and salt.", query:"Pa amb tomaquet Catalonia bread tomato" },
+    { name:"Crema catalana", fact:"Crema catalana is a custard dessert finished with a brittle caramelised sugar top.", query:"Crema catalana dessert Barcelona" },
+    { name:"Escalivada", fact:"Escalivada is a Catalan dish of roasted peppers, aubergine and onion dressed with olive oil.", query:"Escalivada Catalan dish" }
+  ],
+  lisbon: [
+    { name:"Pastel de nata", fact:"Pastéis de nata are crisp pastry tarts filled with baked custard.", query:"Pastel de nata Lisbon Portugal" },
+    { name:"Bacalhau", fact:"Salt cod appears in many Portuguese preparations and is a major part of the country's food culture.", query:"Bacalhau Portuguese cod Lisbon" },
+    { name:"Bifana", fact:"A bifana is a Portuguese pork sandwich seasoned with garlic and spices.", query:"Bifana Portuguese pork sandwich" }
+  ],
+  vienna: [
+    { name:"Wiener schnitzel", fact:"Wiener schnitzel is a thin breaded veal cutlet fried until crisp and golden.", query:"Wiener schnitzel Vienna Austria" },
+    { name:"Sachertorte", fact:"Sachertorte is a dense chocolate cake with apricot jam and chocolate glaze.", query:"Sachertorte Vienna cake" },
+    { name:"Apfelstrudel", fact:"Apfelstrudel wraps spiced apples in thin pastry and is a classic Austrian dessert.", query:"Apfelstrudel Vienna Austria" }
+  ],
+  prague: [
+    { name:"Svíčková", fact:"Svíčková pairs beef with a creamy root-vegetable sauce, dumplings and cranberry garnish.", query:"Svickova Czech dish Prague" },
+    { name:"Knedlíky", fact:"Czech dumplings are a staple accompaniment used to soak up rich sauces.", query:"Czech knedliky dumplings" },
+    { name:"Koláče", fact:"Koláče are round pastries filled with fruit, poppy seed, cheese or other sweet fillings.", query:"Czech kolace pastry" }
+  ],
+  amsterdam: [
+    { name:"Stroopwafel", fact:"A stroopwafel sandwiches caramel-like syrup between two thin waffle discs.", query:"Stroopwafel Netherlands Amsterdam" },
+    { name:"Bitterballen", fact:"Bitterballen are crisp fried savoury croquettes commonly served as a bar snack.", query:"Bitterballen Dutch snack" },
+    { name:"Dutch herring", fact:"Raw-cured herring is traditionally eaten with chopped onion and sometimes pickles.", query:"Dutch herring Amsterdam" }
+  ],
+  edinburgh: [
+    { name:"Haggis", fact:"Haggis is a seasoned Scottish savoury pudding traditionally made with sheep offal and oats.", query:"Haggis Scotland Edinburgh" },
+    { name:"Cullen skink", fact:"Cullen skink is a thick Scottish soup made with smoked haddock, potatoes and onions.", query:"Cullen skink Scotland soup" },
+    { name:"Shortbread", fact:"Scottish shortbread is a rich biscuit made mainly from butter, flour and sugar.", query:"Scottish shortbread Edinburgh" }
+  ],
+  reykjavik: [
+    { name:"Skyr", fact:"Skyr is a thick Icelandic cultured dairy food high in protein.", query:"Icelandic skyr Reykjavik" },
+    { name:"Rúgbrauð", fact:"Rúgbrauð is a dense Icelandic rye bread traditionally baked slowly, sometimes using geothermal heat.", query:"Icelandic rugbraud rye bread" },
+    { name:"Icelandic lamb", fact:"Icelandic lamb is closely tied to the country's sheep-farming tradition.", query:"Icelandic lamb dish Reykjavik" }
+  ],
+  istanbul: [
+    { name:"Simit", fact:"Simit is a sesame-crusted ring bread commonly eaten for breakfast or as a street snack.", query:"Simit Istanbul sesame bread" },
+    { name:"Meze", fact:"Meze is a spread of small dishes designed for sharing before or alongside a meal.", query:"Turkish meze Istanbul" },
+    { name:"Baklava", fact:"Baklava layers filo, nuts and syrup into a rich Ottoman-influenced dessert.", query:"Turkish baklava Istanbul" }
+  ],
+  cappadocia: [
+    { name:"Testi kebabı", fact:"Testi kebabı is a Cappadocian stew cooked and served in a sealed clay pot.", query:"Testi kebabi Cappadocia pottery kebab" },
+    { name:"Gözleme", fact:"Gözleme is a thin Turkish flatbread folded around savoury fillings and cooked on a griddle.", query:"Gozleme Turkey Cappadocia" },
+    { name:"Manti", fact:"Manti are small Turkish dumplings often served with yoghurt, garlic and spiced butter.", query:"Turkish manti dumplings Cappadocia" }
+  ],
+  petra: [
+    { name:"Mansaf", fact:"Mansaf is Jordan's national dish, combining lamb, jameed yoghurt sauce and rice.", query:"Jordan mansaf dish" },
+    { name:"Maqluba", fact:"Maqluba is a layered rice, meat and vegetable dish flipped upside down before serving.", query:"Jordan maqluba dish" },
+    { name:"Mezze", fact:"Jordanian mezze brings together shared small plates such as hummus, moutabal and salads.", query:"Jordan mezze food" }
+  ],
+  cairo: [
+    { name:"Koshari", fact:"Koshari mixes rice, lentils, pasta, chickpeas and fried onions with tomato sauce.", query:"Egyptian koshari Cairo" },
+    { name:"Ful medames", fact:"Ful medames is slow-cooked fava beans seasoned with oil, lemon and spices.", query:"Ful medames Egypt Cairo" },
+    { name:"Ta'ameya", fact:"Egyptian ta'ameya is a green falafel typically made from fava beans rather than chickpeas.", query:"Egyptian taameya fava falafel" }
+  ],
+  marrakech: [
+    { name:"Tagine", fact:"A tagine is a slow-cooked Moroccan stew named after the conical earthenware vessel used to cook it.", query:"Moroccan tagine Marrakech" },
+    { name:"Couscous", fact:"Moroccan couscous is traditionally steamed and served with vegetables, meat or both.", query:"Moroccan couscous Marrakech" },
+    { name:"Pastilla", fact:"Pastilla combines crisp pastry with a savoury-sweet spiced filling, often poultry.", query:"Moroccan pastilla Marrakech" }
+  ],
+  nairobi: [
+    { name:"Nyama choma", fact:"Nyama choma is charcoal-grilled meat, commonly goat or beef, shared socially with simple sides.", query:"Nyama choma Kenya grilled goat" },
+    { name:"Ugali", fact:"Ugali is a firm maize-meal staple served with vegetables, meat, fish or stews.", query:"Ugali Kenya food" },
+    { name:"Chapati", fact:"Kenyan chapati is a soft layered flatbread often served with stews, beans or meat dishes.", query:"Kenyan chapati food" }
+  ],
+  "maasai-mara": [
+    { name:"Nyama choma", fact:"Grilled meat is widely enjoyed in Kenya and is common at social gatherings.", query:"Nyama choma Kenya grilled meat" },
+    { name:"Ugali", fact:"Ugali is a maize-meal staple eaten across Kenya with vegetables or meat.", query:"Ugali Kenya dish" },
+    { name:"Chai", fact:"Kenyan chai is usually black tea brewed with milk and often sugar or spices.", query:"Kenyan chai tea milk" }
+  ],
+  "stone-town": [
+    { name:"Zanzibar pizza", fact:"Zanzibar pizza is a griddled stuffed dough parcel popular in Stone Town night markets.", query:"Zanzibar pizza Stone Town" },
+    { name:"Pilau", fact:"Zanzibari pilau is fragrant rice cooked with warm spices influenced by Indian Ocean trade.", query:"Zanzibar pilau rice" },
+    { name:"Octopus curry", fact:"Coastal curries often combine seafood with coconut milk and aromatic spices.", query:"Zanzibar octopus curry" }
+  ],
+  "cape-town": [
+    { name:"Bobotie", fact:"Bobotie is a Cape dish of spiced minced meat baked beneath an egg-based topping.", query:"South African bobotie Cape Town" },
+    { name:"Cape Malay curry", fact:"Cape Malay curries blend aromatic spices with local South African ingredients and history.", query:"Cape Malay curry Cape Town" },
+    { name:"Braai", fact:"A braai is a South African social barbecue tradition centred on open-fire cooking.", query:"South African braai Cape Town" }
+  ],
+  "victoria-falls": [
+    { name:"Sadza", fact:"Sadza is a thick maize-meal staple widely eaten in Zimbabwe with meat or vegetables.", query:"Zimbabwe sadza food" },
+    { name:"Nshima", fact:"Nshima is Zambia's maize-meal staple, typically eaten with relishes, vegetables or meat.", query:"Zambia nshima food" },
+    { name:"Zambezi bream", fact:"Freshwater fish from the Zambezi region is commonly grilled or fried in local cuisine.", query:"Zambezi bream fish Zambia Zimbabwe food" }
+  ],
+  socotra: [
+    { name:"Grilled fish", fact:"Fresh fish is a major part of island food because Socotra's communities are closely tied to the sea.", query:"Socotra grilled fish Yemen" },
+    { name:"Rice with fish", fact:"Simple rice-and-fish meals reflect the island's coastal food traditions.", query:"Socotra rice fish meal" },
+    { name:"Dates", fact:"Dates are common across Yemen and the wider Arabian region as a staple fruit and snack.", query:"Yemen dates food" }
+  ],
+  sossusvlei: [
+    { name:"Braaivleis", fact:"Namibian braai culture centres on meat cooked over open coals.", query:"Namibia braai meat" },
+    { name:"Kapana", fact:"Kapana is grilled meat sold at informal markets, especially associated with urban Namibia.", query:"Namibia kapana grilled meat" },
+    { name:"Vetkoek", fact:"Vetkoek is fried dough often eaten plain or filled with savoury meat.", query:"Namibia vetkoek food" }
+  ],
+  kyoto: [
+    { name:"Kaiseki", fact:"Kaiseki is a refined multi-course meal emphasizing seasonality, presentation and balance.", query:"Kyoto kaiseki cuisine" },
+    { name:"Yudofu", fact:"Yudofu is gently simmered tofu associated with Kyoto's Buddhist temple cuisine.", query:"Kyoto yudofu tofu" },
+    { name:"Matcha sweets", fact:"Kyoto, especially nearby Uji, is famous for matcha used in confectionery and desserts.", query:"Kyoto matcha sweets Japan" }
+  ],
+  seoul: [
+    { name:"Bibimbap", fact:"Bibimbap combines rice with vegetables, meat or egg and gochujang, mixed before eating.", query:"Korean bibimbap Seoul" },
+    { name:"Tteokbokki", fact:"Tteokbokki is chewy rice cake cooked in a sweet-spicy gochujang sauce.", query:"Tteokbokki Seoul street food" },
+    { name:"Korean barbecue", fact:"Korean barbecue centres on grilling meat at the table and eating it with many shared side dishes.", query:"Korean barbecue Seoul" }
+  ],
+  bangkok: [
+    { name:"Pad thai", fact:"Pad thai stir-fries rice noodles with tamarind, egg and other savoury ingredients.", query:"Pad thai Bangkok Thailand" },
+    { name:"Tom yum", fact:"Tom yum is a hot-and-sour soup scented with lemongrass, lime leaves and galangal.", query:"Tom yum Thailand Bangkok" },
+    { name:"Mango sticky rice", fact:"This dessert pairs sweet glutinous rice and coconut milk with ripe mango.", query:"Mango sticky rice Bangkok" }
+  ],
+  singapore: [
+    { name:"Hainanese chicken rice", fact:"Singapore chicken rice pairs poached chicken with fragrant rice, chilli and sauces.", query:"Singapore Hainanese chicken rice" },
+    { name:"Laksa", fact:"Singapore laksa is a spicy noodle soup often enriched with coconut milk and seafood.", query:"Singapore laksa noodles" },
+    { name:"Satay", fact:"Satay is skewered grilled meat served with peanut sauce and accompaniments.", query:"Singapore satay hawker" }
+  ],
+  bali: [
+    { name:"Nasi campur", fact:"Nasi campur serves rice with several small portions of vegetables, meat, sambal and sides.", query:"Balinese nasi campur" },
+    { name:"Sate lilit", fact:"Sate lilit wraps seasoned minced meat around a skewer before grilling.", query:"Balinese sate lilit" },
+    { name:"Lawar", fact:"Lawar mixes chopped vegetables, coconut and spices, often with meat.", query:"Balinese lawar dish" }
+  ],
+  sydney: [
+    { name:"Barramundi", fact:"Barramundi is a popular Australian fish served grilled, pan-fried or roasted.", query:"Australian barramundi dish Sydney" },
+    { name:"Meat pie", fact:"The Australian meat pie is a hand-sized savoury pastry filled with minced meat and gravy.", query:"Australian meat pie Sydney" },
+    { name:"Lamington", fact:"Lamingtons are sponge-cake squares coated in chocolate and coconut.", query:"Australian lamington cake" }
+  ],
+  auckland: [
+    { name:"Hāngī", fact:"Hāngī is a Māori cooking method where food is traditionally cooked in an earth oven.", query:"Maori hangi New Zealand food" },
+    { name:"Green-lipped mussels", fact:"New Zealand green-lipped mussels are a distinctive local shellfish.", query:"New Zealand green lipped mussels Auckland" },
+    { name:"Pavlova", fact:"Pavlova is a meringue dessert with a crisp shell and soft interior, topped with cream and fruit.", query:"New Zealand pavlova dessert" }
+  ],
+  banff: [
+    { name:"Poutine", fact:"Poutine combines fries, cheese curds and gravy and is strongly associated with Canadian comfort food.", query:"Canadian poutine Banff" },
+    { name:"Bison burger", fact:"Bison appears on menus in parts of Alberta as a lean game meat.", query:"Alberta bison burger Canada" },
+    { name:"Maple dessert", fact:"Maple syrup features widely in Canadian sweets and breakfast dishes.", query:"Canadian maple dessert" }
+  ],
+  lofoten: [
+    { name:"Stockfish", fact:"Lofoten stockfish is air-dried cod traditionally hung on outdoor wooden racks.", query:"Lofoten stockfish Norway food" },
+    { name:"Cod", fact:"Seasonal cod has shaped the islands' economy and cuisine for centuries.", query:"Lofoten cod dish Norway" },
+    { name:"Cloudberries", fact:"Cloudberries are an Arctic berry used in desserts and preserves across northern Scandinavia.", query:"Norway cloudberry dessert" }
+  ],
+  "mexico-city": [
+    { name:"Tacos al pastor", fact:"Tacos al pastor feature spit-roasted marinated pork served on small tortillas, often with pineapple.", query:"Tacos al pastor Mexico City" },
+    { name:"Tlacoyos", fact:"Tlacoyos are thick oval masa cakes stuffed with beans, cheese or other fillings.", query:"Tlacoyos Mexico City food" },
+    { name:"Tamales", fact:"Tamales wrap masa and fillings in corn husks or leaves before steaming.", query:"Mexican tamales Mexico City" }
+  ],
+  "new-orleans": [
+    { name:"Gumbo", fact:"Gumbo is a Louisiana stew that can combine roux, seafood or meat, vegetables and strong seasoning.", query:"New Orleans gumbo Louisiana" },
+    { name:"Jambalaya", fact:"Jambalaya is a one-pot Louisiana rice dish with meat, seafood or both.", query:"New Orleans jambalaya" },
+    { name:"Beignets", fact:"Beignets are square fried pastries heavily dusted with powdered sugar.", query:"New Orleans beignets" }
+  ],
+  "buenos-aires": [
+    { name:"Empanadas", fact:"Argentine empanadas are baked or fried pastries filled with meat, cheese or vegetables.", query:"Argentine empanadas Buenos Aires" },
+    { name:"Asado", fact:"Asado is Argentina's social barbecue tradition centred on meats cooked over fire.", query:"Argentina asado Buenos Aires" },
+    { name:"Dulce de leche", fact:"Dulce de leche is caramelised milk used in pastries, desserts and sweets.", query:"Argentina dulce de leche dessert" }
+  ],
+  cusco: [
+    { name:"Chiri uchu", fact:"Chiri uchu is a traditional Cusco festival dish combining several meats, corn and other regional ingredients.", query:"Chiri uchu Cusco Peru" },
+    { name:"Cuy", fact:"Roasted guinea pig is a traditional Andean dish served on special occasions and in regional restaurants.", query:"Cuy dish Cusco Peru" },
+    { name:"Quinoa soup", fact:"Quinoa is an ancient Andean crop used in soups and many everyday dishes.", query:"Quinoa soup Peru Cusco" }
+  ],
+  "machu-picchu": [
+    { name:"Trout", fact:"Trout is common in Andean tourist regions and is often served grilled or fried.", query:"Peruvian trout dish Andes" },
+    { name:"Quinoa", fact:"Quinoa is a protein-rich Andean grain cultivated for thousands of years.", query:"Peruvian quinoa dish" },
+    { name:"Andean potatoes", fact:"Peru is home to thousands of potato varieties with deep Andean agricultural roots.", query:"Peruvian Andean potatoes food" }
+  ],
+  lencois: [
+    { name:"Peixada", fact:"Fish stews and grilled fish are common along Maranhão's coast.", query:"Maranhao peixada Brazil fish stew" },
+    { name:"Arroz de cuxá", fact:"Arroz de cuxá is a Maranhão rice dish flavoured with vinagreira leaves, sesame and other ingredients.", query:"Arroz de cuxa Maranhao Brazil" },
+    { name:"Tapioca", fact:"Tapioca pancakes made from cassava starch are widely eaten in northeastern Brazil.", query:"Brazil tapioca pancake northeast" }
+  ],
+  rio: [
+    { name:"Feijoada", fact:"Feijoada is a black-bean stew with pork, traditionally served with rice and accompaniments.", query:"Brazil feijoada Rio de Janeiro" },
+    { name:"Pão de queijo", fact:"Pão de queijo are small chewy cheese breads made with cassava starch.", query:"Brazil pao de queijo" },
+    { name:"Açaí", fact:"Açaí pulp is commonly served cold in bowls or drinks, often with fruit and granola.", query:"Brazil acai bowl Rio" }
+  ],
+  dubrovnik: [
+    { name:"Black risotto", fact:"Crni rižot uses cuttlefish or squid ink to colour and flavour the rice.", query:"Croatian black risotto Dubrovnik" },
+    { name:"Peka", fact:"Peka slowly cooks meat or seafood with vegetables under a bell-shaped metal lid and hot coals.", query:"Croatian peka dish Dubrovnik" },
+    { name:"Rozata", fact:"Rozata is a Dubrovnik custard dessert related to crème caramel and flavoured traditionally with rose liqueur.", query:"Dubrovnik rozata dessert" }
+  ],
+  "singapore-gardens": [
+    { name:"Hainanese chicken rice", fact:"Chicken rice is one of Singapore's best-known hawker dishes.", query:"Singapore Hainanese chicken rice" },
+    { name:"Laksa", fact:"Laksa blends noodles with a rich, spicy broth and is a staple of Singapore's multicultural food scene.", query:"Singapore laksa" },
+    { name:"Kaya toast", fact:"Kaya toast pairs crisp bread with coconut-egg jam and butter, often served with coffee and soft eggs.", query:"Singapore kaya toast" }
+  ],
+  "marrakech-medina": [
+    { name:"Tanjia", fact:"Tanjia is a Marrakech specialty of slow-cooked meat seasoned with preserved lemon and spices.", query:"Marrakech tanjia Morocco" },
+    { name:"Harira", fact:"Harira is a tomato-based Moroccan soup with legumes, herbs and spices.", query:"Moroccan harira Marrakech" },
+    { name:"Msemen", fact:"Msemen is a layered Moroccan flatbread commonly eaten with honey, butter or savoury fillings.", query:"Moroccan msemen Marrakech" }
+  ]
+};
+
 export async function fetchWikiImages(query, limit = 4) {
   const params = new URLSearchParams({
     action: "query",
@@ -339,12 +557,7 @@ export function youtubeSearchUrl(query) {
 }
 
 export function topFoodHighlights(destination) {
-  return String(destination.food || "")
-    .replace(/\.$/, "")
-    .split(/,|\band\b/i)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 2)
-    .slice(0, 3);
+  return foodHighlightsByDestination[destination.id] || [];
 }
 
 export function topCultureHighlights(destination) {
