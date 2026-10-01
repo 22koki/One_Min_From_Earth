@@ -248,13 +248,26 @@ export async function fetchWikiImages(query, limit = 4) {
     .slice(0, limit);
 }
 
-async function fetchCommonsImage(query) {
+function meaningfulTokens(text) {
+  const stop = new Set([
+    "the","and","with","from","culture","traditional","tradition","food","people",
+    "country","city","local","south","north","east","west","africa","african",
+    "europe","european","asia","asian","america","american"
+  ]);
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length > 3 && !stop.has(token));
+}
+
+async function fetchCommonsImage(query, requiredLabel = "") {
   const params = new URLSearchParams({
     action: "query",
     generator: "search",
     gsrsearch: query,
     gsrnamespace: "6",
-    gsrlimit: "8",
+    gsrlimit: "12",
     prop: "imageinfo",
     iiprop: "url",
     iiurlwidth: "900",
@@ -265,16 +278,26 @@ async function fetchCommonsImage(query) {
   if (!response.ok) throw new Error("Commons search failed");
   const json = await response.json();
   const pages = Object.values(json?.query?.pages || {});
-  const tokens = query.toLowerCase().split(/\s+/).filter((t) => t.length > 3);
+  const required = meaningfulTokens(requiredLabel);
   const ranked = pages
-    .map((page) => ({
-      title: page.title || "",
-      url: page.imageinfo?.[0]?.thumburl || page.imageinfo?.[0]?.url || "",
-      score: tokens.filter((token) => (page.title || "").toLowerCase().includes(token)).length
-    }))
+    .map((page) => {
+      const title = (page.title || "").toLowerCase();
+      const matched = required.filter((token) => title.includes(token));
+      return {
+        title: page.title || "",
+        url: page.imageinfo?.[0]?.thumburl || page.imageinfo?.[0]?.url || "",
+        score: matched.length,
+        requiredCount: required.length
+      };
+    })
     .filter((item) => item.url)
     .sort((a, b) => b.score - a.score);
-  return ranked[0]?.score > 0 ? ranked[0] : null;
+
+  const best = ranked[0];
+  if (!best) return null;
+
+  const minimum = required.length >= 2 ? 2 : 1;
+  return best.score >= minimum ? best : null;
 }
 
 async function fetchWikipediaSummary(query) {
@@ -339,7 +362,7 @@ export async function fetchVerifiedFeatureCard(nameOrFeature, destination, type 
 
   const exactQuery = feature.query || `${feature.name} ${destination.country}`;
   const summary = await fetchWikipediaSummary(exactQuery).catch(() => null);
-  const commons = await fetchCommonsImage(exactQuery).catch(() => null);
+  const commons = await fetchCommonsImage(exactQuery, feature.name).catch(() => null);
 
   const image = commons?.url || summary?.image || "";
   const fact = feature.fact || summary?.fact || (
