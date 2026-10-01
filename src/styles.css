@@ -26,3 +26,24 @@
 .media-placeholder{flex-direction:column;gap:8px;color:#fff}
 .media-placeholder span{font-size:58px}
 .media-placeholder small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.78}
+
+.feature-art-fallback{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px;text-align:center;position:relative;color:#fff;overflow:hidden}
+.feature-art-fallback:before,.feature-art-fallback:after{content:"";position:absolute;border-radius:50%;filter:blur(4px);opacity:.36}
+.feature-art-fallback:before{width:150px;height:150px;top:-35px;right:-35px;background:rgba(255,255,255,.18)}
+.feature-art-fallback:after{width:110px;height:110px;bottom:-25px;left:-25px;background:rgba(255,255,255,.12)}
+.food-art{background:linear-gradient(145deg,#8a4f1f,#d57b2d 48%,#5b2e18)}
+.culture-art{background:linear-gradient(145deg,#194e65,#5a3d86 50%,#b3577d)}
+.feature-art-fallback svg{position:relative;z-index:2;opacity:.95}
+.feature-art-fallback b{position:relative;z-index:2;font-size:22px;line-height:1.05}
+.feature-art-fallback small{position:relative;z-index:2;text-transform:uppercase;letter-spacing:.12em;opacity:.8}
+.fallback-flag{position:absolute;top:14px;left:14px;font-size:30px;z-index:2;filter:drop-shadow(0 3px 8px rgba(0,0,0,.28))}
+.overview-extras{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin:18px 0}
+.did-you-know-card,.explorer-badges-card{padding:22px;border-radius:24px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.did-you-know-card svg{color:#ffd76a}
+.did-you-know-card span{display:block;margin:12px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:900}
+.did-you-know-card p{margin:0;color:var(--text);font-size:20px;line-height:1.4}
+.mini-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.mini-badges span{display:inline-flex;align-items:center;gap:7px;padding:9px 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-size:12px}
+:root[data-theme="light"] .food-art{background:linear-gradient(145deg,#f2b273,#e8863b,#a85f2d)}
+:root[data-theme="light"] .culture-art{background:linear-gradient(145deg,#58a6bd,#8d78c6,#d989a7)}
+@media(max-width:700px){.overview-extras{grid-template-columns:1fr}}
