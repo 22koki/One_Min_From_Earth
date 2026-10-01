@@ -252,9 +252,18 @@ export default function App() {
             <button className={tab === 'passport' ? 'active' : ''} onClick={() => setTab('passport')}>Passport</button>
             <button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>History</button>
           </nav>
-          <button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle light and dark mode">
-            {theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}
-            <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          <button
+            className={`theme-switch ${theme}`}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label="Toggle light and dark mode"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            <span className="theme-switch-track">
+              <span className="theme-icon sun"><Sun size={15}/></span>
+              <span className="theme-icon moon"><Moon size={15}/></span>
+              <span className="theme-switch-thumb">{theme === 'dark' ? <Moon size={14}/> : <Sun size={14}/>}</span>
+            </span>
+            <span className="theme-switch-label">{theme === 'dark' ? 'Dark' : 'Light'}</span>
           </button>
         </div>
       </header>
@@ -639,48 +648,102 @@ export default function App() {
 
       {tab === 'passport' && (
         <main className="dashboard passport-page">
-          <section className="passport-hero">
-            <div className="passport-cover">
-              <div className="passport-emblem"><Globe2 size={42}/></div>
-              <span className="passport-label">ONE MINUTE FROM EARTH</span>
+          <section className="passport-hero passport-hero-upgraded">
+            <div className="passport-cover passport-cover-premium">
+              <div className="passport-cover-pattern" />
+              <div className="passport-cover-top">
+                <span className="passport-label">ONE MINUTE FROM EARTH</span>
+                <span className="passport-chip">{current.emoji}</span>
+              </div>
+              <div className="passport-emblem"><Globe2 size={46}/></div>
               <h1>WORLD<br/>PASSPORT</h1>
               <p>Issued to a curious explorer</p>
-              <div className="passport-cover-footer"><BookOpen size={18}/><span>{visited} destinations stamped</span></div>
+              <div className="passport-cover-seal"><Stamp size={18}/> EXPLORER EDITION</div>
+              <div className="passport-cover-footer">
+                <BookOpen size={18}/>
+                <span>{visited} destinations stamped · {continents} continents reached</span>
+              </div>
             </div>
 
-            <div className="passport-summary">
-              <p className="eyebrow">YOUR JOURNEY</p>
-              <h2>Every place leaves a mark.</h2>
-              <p className="lede small">Collect destinations, continents and little stories as you explore.</p>
-              <div className="passport-stats">
-                <article><Stamp /><strong>{visited}</strong><span>Stamps</span></article>
-                <article><MapPinned /><strong>{continents}</strong><span>Continents</span></article>
-                <article><Heart /><strong>{saved.favorites.length}</strong><span>Favorites</span></article>
-                <article><Trophy /><strong>{achievement}</strong><span>Rank</span></article>
+            <div className="passport-summary passport-id-page">
+              <div className="passport-id-header">
+                <div>
+                  <p className="eyebrow">TRAVEL IDENTITY</p>
+                  <h2>Your world, collected.</h2>
+                </div>
+                <div className="passport-avatar"><Globe2 size={34}/></div>
+              </div>
+
+              <div className="passport-id-fields">
+                <div><span>Explorer status</span><strong>{achievement}</strong></div>
+                <div><span>Places visited</span><strong>{visited}</strong></div>
+                <div><span>Continents</span><strong>{continents}</strong></div>
+                <div><span>Favorites</span><strong>{saved.favorites.length}</strong></div>
+              </div>
+
+              <div className="passport-progress-block">
+                <div className="passport-progress-copy">
+                  <span>WORLD DISCOVERY</span>
+                  <strong>{Math.round((visited / destinations.length) * 100)}%</strong>
+                </div>
+                <div className="passport-progress-track">
+                  <span style={{ width: `${Math.max(4, (visited / destinations.length) * 100)}%` }} />
+                </div>
+                <small>{visited} of {destinations.length} destinations collected</small>
+              </div>
+
+              <div className="passport-rank-card">
+                <Trophy size={22}/>
+                <div>
+                  <span>Current travel rank</span>
+                  <strong>{achievement}</strong>
+                </div>
+                <Sparkles size={18}/>
               </div>
             </div>
           </section>
 
-          <section className="passport-book">
+          <section className="passport-book passport-book-premium">
             <div className="passport-book-heading">
-              <div><span className="journey-kicker">STAMP COLLECTION</span><h2>Places in your passport</h2></div>
-              <BadgeCheck size={28}/>
+              <div>
+                <span className="journey-kicker">VISA & STAMP COLLECTION</span>
+                <h2>Your travel pages</h2>
+                <p>Each discovered place earns a visa-style stamp and becomes part of your world story.</p>
+              </div>
+              <BadgeCheck size={30}/>
             </div>
-            <div className="passport-grid passport-stamp-grid">
-              {destinations.map((destination, index) => (
-                <button
-                  className={`stamp-card passport-stamp-card ${saved.stamps.includes(destination.id) ? 'earned' : 'locked'}`}
-                  key={destination.id}
-                  onClick={() => saved.stamps.includes(destination.id) && jumpTo(destination.id)}
-                >
-                  <span className="passport-stamp-ring">
-                    <span className="stamp-emoji">{destination.emoji}</span>
-                  </span>
-                  <span className="passport-stamp-country">{destination.country}</span>
-                  <strong>{destination.name}</strong>
-                  <small>{saved.stamps.includes(destination.id) ? `STAMPED · #${String(index + 1).padStart(2,'0')}` : 'UNDISCOVERED'}</small>
-                </button>
-              ))}
+
+            <div className="passport-pages">
+              {destinations.map((destination, index) => {
+                const earned = saved.stamps.includes(destination.id);
+                return (
+                  <button
+                    className={`passport-visa ${earned ? 'earned' : 'locked'} visa-${index % 4}`}
+                    key={destination.id}
+                    onClick={() => earned && jumpTo(destination.id)}
+                  >
+                    <div className="visa-topline">
+                      <span>{earned ? 'ENTRY APPROVED' : 'NOT YET VISITED'}</span>
+                      <span>{destination.emoji}</span>
+                    </div>
+                    <div className="visa-stamp-art">
+                      <span className="visa-ring">
+                        <Globe2 size={24}/>
+                        <b>{destination.country.slice(0,3).toUpperCase()}</b>
+                      </span>
+                    </div>
+                    <div className="visa-copy">
+                      <small>{destination.continent}</small>
+                      <strong>{destination.name}</strong>
+                      <span>{destination.country}</span>
+                    </div>
+                    <div className="visa-footer">
+                      <span>{earned ? `STAMP #${String(index + 1).padStart(2,'0')}` : 'LOCKED'}</span>
+                      <span>{earned ? 'VALID' : 'EXPLORE TO UNLOCK'}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </section>
         </main>
