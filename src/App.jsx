@@ -123,7 +123,7 @@ export default function App() {
       const cultureNames = topCultureHighlights(current);
 
       const foodCards = await Promise.all(
-        foodNames.map((name) => fetchVerifiedFeatureCard(name, current, 'food'))
+        foodNames.map((feature) => fetchVerifiedFeatureCard(feature, current, 'food'))
       );
 
       const cultureCards = await Promise.all(
