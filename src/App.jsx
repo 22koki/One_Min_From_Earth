@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Globe from 'react-globe.gl';
 import {
   Globe2, Search, Shuffle, Heart, Stamp, Trophy,
-  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon
+  MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
 
@@ -27,6 +27,7 @@ export default function App() {
   const [category, setCategory] = useState('All');
   const [saved, setSaved] = useState(loadState);
   const [tab, setTab] = useState('discover');
+  const [journeyOpen, setJourneyOpen] = useState(false);
   const [liveWeather, setLiveWeather] = useState(null);
   const [photoUrl, setPhotoUrl] = useState('');
   const [photoMap, setPhotoMap] = useState({});
@@ -139,6 +140,7 @@ export default function App() {
       setCurrentIndex(next);
       setSeconds(60);
       setTab('discover');
+      setJourneyOpen(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -207,7 +209,87 @@ export default function App() {
         </nav>
       </header>
 
-      {tab === 'discover' && (
+      {tab === 'discover' && journeyOpen && (
+        <main className="journey-page">
+          <div className="journey-hero" style={photoMap[current.id] ? {
+            backgroundImage: `linear-gradient(180deg, rgba(6,17,31,.10), rgba(6,17,31,.92)), url("${photoMap[current.id]}")`
+          } : undefined}>
+            <button className="journey-back" onClick={() => setJourneyOpen(false)}><ArrowLeft size={18}/> Back to world</button>
+            <div className="guide-bubble">
+              <div className="guide-avatar">{current.guide?.emoji}</div>
+              <div>
+                <span>{current.guide?.name} says</span>
+                <h2>{current.greeting}</h2>
+                <p>{current.guide?.line}</p>
+              </div>
+            </div>
+
+            <div className="journey-title">
+              <p className="eyebrow">YOU'VE ARRIVED</p>
+              <h1>{current.name}</h1>
+              <p>{current.country} · {current.continent}</p>
+            </div>
+          </div>
+
+          <section className="journey-content">
+            <div className="journey-intro-card">
+              <div>
+                <span className="journey-kicker">WHY PEOPLE REMEMBER IT</span>
+                <h2>{current.intro}</h2>
+                <p>{current.unique}</p>
+              </div>
+              <div className="known-for-list">
+                {current.knownFor?.map((item) => <span key={item}><Star size={14}/>{item}</span>)}
+              </div>
+            </div>
+
+            <div className="journey-grid">
+              <article className="journey-card">
+                <Landmark size={22}/>
+                <span>Culture</span>
+                <h3>How the place feels</h3>
+                <p>{current.culture}</p>
+              </article>
+
+              <article className="journey-card">
+                <Landmark size={22}/>
+                <span>Museums & heritage</span>
+                <h3>What to explore deeper</h3>
+                <p>{current.museum}</p>
+              </article>
+
+              <article className="journey-card">
+                <Utensils size={22}/>
+                <span>Local food</span>
+                <h3>What to taste</h3>
+                <p>{current.food}</p>
+              </article>
+
+              <article className="journey-card">
+                <Languages size={22}/>
+                <span>Language</span>
+                <h3>{current.language}</h3>
+                <p><strong>Hello:</strong> {current.greeting}</p>
+                <p><strong>Goodbye:</strong> {current.goodbye}</p>
+              </article>
+            </div>
+
+            <div className="journey-footer-card">
+              <div className="guide-avatar large">{current.guide?.emoji}</div>
+              <div>
+                <span className="journey-kicker">{current.guide?.name} is seeing you off</span>
+                <h2>{current.goodbye}</h2>
+                <p>You’ve explored {current.name}. Your passport stamp is already saved.</p>
+              </div>
+              <button className="primary" onClick={() => { setJourneyOpen(false); surpriseMe(); }}>
+                <DoorOpen size={18}/> Next country
+              </button>
+            </div>
+          </section>
+        </main>
+      )}
+
+      {tab === 'discover' && !journeyOpen && (
         <>
           <main className={`hero accent-${current.accent}`}>
             <div className="aurora aurora-one" />
