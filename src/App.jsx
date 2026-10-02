@@ -5,7 +5,7 @@ import {
   MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette, CheckCircle2, Award, CircleHelp, Volume2, VolumeX, Route, ListPlus, PlayCircle
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
-import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard, ambientForDestination } from './media.js';
+import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard, ambientForDestination, resolveAmbientAudio } from './media.js';
 
 const STORAGE = 'one-minute-from-earth-v1';
 
@@ -49,6 +49,8 @@ export default function App() {
   const [exploreMode, setExploreMode] = useState('quick');
   const [landmarkRevealed, setLandmarkRevealed] = useState(false);
   const [routeStops, setRouteStops] = useState([]);
+  const [ambientUrl, setAmbientUrl] = useState('');
+  const [ambientError, setAmbientError] = useState('');
   const globeRef = useRef();
   const audioRef = useRef();
   const current = destinations[currentIndex];
@@ -79,12 +81,21 @@ export default function App() {
       audioRef.current.currentTime = 0;
     }
     setSoundOn(false);
+    setAmbientUrl('');
+    setAmbientError('');
+    let cancelled = false;
+    resolveAmbientAudio(ambient)
+      .then((url) => { if (!cancelled) setAmbientUrl(url); })
+      .catch(() => { if (!cancelled) setAmbientError('Audio unavailable'); });
     setJourneySeenTabs(new Set(['overview']));
     setQuizAnswer('');
     setLandmarkRevealed(false);
     setArrivalOpen(true);
     const t = setTimeout(() => setArrivalOpen(false), 1400);
-    return () => clearTimeout(t);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, [current.id]);
 
   useEffect(() => {
@@ -786,25 +797,39 @@ export default function App() {
               </button>
               <button
                 className="sound-btn"
-                onClick={() => {
-                  const next = !soundOn;
-                  setSoundOn(next);
-                  if (!audioRef.current) return;
-                  if (next) {
-                    audioRef.current.volume = 0.38;
-                    audioRef.current.play().catch(() => setSoundOn(false));
-                  } else {
+                disabled={!ambientUrl}
+                onClick={async () => {
+                  if (!audioRef.current || !ambientUrl) return;
+                  if (soundOn) {
                     audioRef.current.pause();
+                    setSoundOn(false);
+                    return;
+                  }
+                  try {
+                    audioRef.current.volume = 0.55;
+                    await audioRef.current.play();
+                    setSoundOn(true);
+                    setAmbientError('');
+                  } catch {
+                    setSoundOn(false);
+                    setAmbientError('Tap again or check browser/site audio permissions');
                   }
                 }}
               >
                 {soundOn ? <Volume2 size={16}/> : <VolumeX size={16}/>}
-                {soundOn ? ambient.label : 'Ambient off'}
+                {ambientUrl ? (soundOn ? ambient.label : 'Play ambience') : 'Loading ambience…'}
               </button>
-              <audio ref={audioRef} src={ambient.url} loop preload="none" />
+              <audio
+                ref={audioRef}
+                src={ambientUrl || undefined}
+                loop
+                preload="metadata"
+                onError={() => setAmbientError('Audio unavailable')}
+              />
               <a className="ambient-credit" href={ambient.source} target="_blank" rel="noreferrer">
                 {ambient.label} · {ambient.license} · Wikimedia Commons
               </a>
+              {ambientError && <span className="ambient-error">{ambientError}</span>}
             </div>
 
             <div className="destination-grid">
