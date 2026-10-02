@@ -41,11 +41,32 @@ const ambientTypeByDestination = {
 
 export function ambientForDestination(destination) {
   const key = ambientTypeByDestination[destination.id] || "nature";
-  const profile = ambientProfiles[key];
-  return {
-    ...profile,
-    url: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(profile.file)}`
-  };
+  return ambientProfiles[key];
+}
+
+export async function resolveAmbientAudio(profile) {
+  const params = new URLSearchParams({
+    action: "query",
+    format: "json",
+    origin: "*",
+    prop: "videoinfo",
+    viprop: "url|derivatives",
+    titles: `File:${profile.file}`
+  });
+
+  const response = await fetch(`https://commons.wikimedia.org/w/api.php?${params.toString()}`);
+  if (!response.ok) throw new Error("Could not load ambient audio metadata");
+
+  const json = await response.json();
+  const page = Object.values(json?.query?.pages || {})[0];
+  const info = page?.videoinfo?.[0];
+  const derivatives = info?.derivatives || [];
+
+  const mp3 = derivatives.find((item) =>
+    String(item?.src || "").toLowerCase().includes(".mp3")
+  );
+
+  return mp3?.src || info?.url || "";
 }
 
 export const curatedVideos = {
