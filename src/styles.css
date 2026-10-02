@@ -120,3 +120,6 @@
 
 .ambient-credit{display:inline-flex;align-items:center;margin-left:8px;font-size:10px;color:var(--muted);text-decoration:none;opacity:.78}.ambient-credit:hover{opacity:1;text-decoration:underline}
 @media(max-width:700px){.ambient-credit{display:block;margin:8px 0 0}}
+
+.ambient-error{display:inline-block;margin-left:8px;font-size:10px;color:#ef7777}.sound-btn:disabled{opacity:.55;cursor:wait}
+@media(max-width:700px){.ambient-error{display:block;margin:7px 0 0}}
