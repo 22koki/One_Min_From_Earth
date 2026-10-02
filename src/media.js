@@ -1,3 +1,53 @@
+
+export const ambientProfiles = {
+  ocean: {
+    label: "Ocean waves",
+    file: "Ocean Waves on a Tropical Beach.ogg",
+    source: "https://commons.wikimedia.org/wiki/File:Ocean_Waves_on_a_Tropical_Beach.ogg",
+    license: "CC0"
+  },
+  market: {
+    label: "Market ambience",
+    file: "Market recorded audio.ogg",
+    source: "https://commons.wikimedia.org/wiki/File:Market_recorded_audio.ogg",
+    license: "CC0"
+  },
+  cafe: {
+    label: "Café ambience",
+    file: "Cafe ambiance.ogg",
+    source: "https://commons.wikimedia.org/wiki/File:Cafe_ambiance.ogg",
+    license: "CC0"
+  },
+  nature: {
+    label: "Breeze & birds",
+    file: "Gentle breeze and birds singing.ogg",
+    source: "https://commons.wikimedia.org/wiki/File:Gentle_breeze_and_birds_singing.ogg",
+    license: "Public domain"
+  }
+};
+
+const ambientTypeByDestination = {
+  santorini:"ocean", athens:"cafe", rome:"cafe", venice:"ocean", paris:"cafe",
+  barcelona:"ocean", lisbon:"ocean", vienna:"cafe", prague:"cafe", amsterdam:"cafe",
+  edinburgh:"cafe", reykjavik:"nature", istanbul:"market", cappadocia:"nature", petra:"nature",
+  cairo:"market", marrakech:"market", nairobi:"market", "maasai-mara":"nature", "stone-town":"market",
+  "cape-town":"ocean", "victoria-falls":"nature", socotra:"ocean", sossusvlei:"nature",
+  kyoto:"nature", seoul:"cafe", bangkok:"market", singapore:"market", bali:"ocean",
+  sydney:"ocean", auckland:"ocean", banff:"nature", lofoten:"ocean", "mexico-city":"market",
+  "new-orleans":"cafe", "buenos-aires":"cafe", cusco:"market", "machu-picchu":"nature",
+  lencois:"nature", rio:"ocean", dubrovnik:"ocean", "singapore-gardens":"nature",
+  "marrakech-medina":"market"
+};
+
+export function ambientForDestination(destination) {
+  const key = ambientTypeByDestination[destination.id] || "nature";
+  const profile = ambientProfiles[key];
+  return {
+    ...profile,
+    url: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(profile.file)}`
+  };
+}
+
 export const curatedVideos = {
   "maasai-mara": [
     { title: "Wildlife, culture & adventure", youtubeId: "rkCMlxYj3ns", type: "Culture + wildlife" }
