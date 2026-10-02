@@ -5,7 +5,7 @@ import {
   MapPinned, Sparkles, Compass, TimerReset, PlaneTakeoff, CloudSun, Clock3, Map, Image as ImageIcon, Utensils, Landmark, Languages, Star, ArrowLeft, DoorOpen, Sun, Moon, BookOpen, BadgeCheck, Lightbulb, Camera, Music2, Leaf, Palette, CheckCircle2, Award, CircleHelp, Volume2, VolumeX, Route, ListPlus, PlayCircle
 } from 'lucide-react';
 import { categories, destinations } from './data.js';
-import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard } from './media.js';
+import { curatedVideos, fetchWikiImages, youtubeSearchUrl, topFoodHighlights, topCultureHighlights, fetchVerifiedFeatureCard, ambientForDestination } from './media.js';
 
 const STORAGE = 'one-minute-from-earth-v1';
 
@@ -50,7 +50,9 @@ export default function App() {
   const [landmarkRevealed, setLandmarkRevealed] = useState(false);
   const [routeStops, setRouteStops] = useState([]);
   const globeRef = useRef();
+  const audioRef = useRef();
   const current = destinations[currentIndex];
+  const ambient = ambientForDestination(current);
 
   const fallbackImage = (destination, label = 'Explore') => {
     const bg = theme === 'dark' ? '#102238' : '#e8f1fb';
@@ -72,6 +74,11 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setSoundOn(false);
     setJourneySeenTabs(new Set(['overview']));
     setQuizAnswer('');
     setLandmarkRevealed(false);
@@ -777,10 +784,27 @@ export default function App() {
               <button className={`wishlist-btn ${wishlist.includes(current.id) ? 'saved' : ''}`} onClick={toggleWishlist}>
                 <ListPlus size={16}/>{wishlist.includes(current.id) ? 'On wishlist' : 'Would visit'}
               </button>
-              <button className="sound-btn" onClick={() => setSoundOn(!soundOn)}>
+              <button
+                className="sound-btn"
+                onClick={() => {
+                  const next = !soundOn;
+                  setSoundOn(next);
+                  if (!audioRef.current) return;
+                  if (next) {
+                    audioRef.current.volume = 0.38;
+                    audioRef.current.play().catch(() => setSoundOn(false));
+                  } else {
+                    audioRef.current.pause();
+                  }
+                }}
+              >
                 {soundOn ? <Volume2 size={16}/> : <VolumeX size={16}/>}
-                {soundOn ? 'Ambient on' : 'Ambient off'}
+                {soundOn ? ambient.label : 'Ambient off'}
               </button>
+              <audio ref={audioRef} src={ambient.url} loop preload="none" />
+              <a className="ambient-credit" href={ambient.source} target="_blank" rel="noreferrer">
+                {ambient.label} · {ambient.license} · Wikimedia Commons
+              </a>
             </div>
 
             <div className="destination-grid">
